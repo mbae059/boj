@@ -183,6 +183,7 @@ int sum(int idx) { //IF 3~5 sum is required it should be sum(5)-sum(2);
 	return result;
 }
 */
+
 #define MAX 5001
 vii SCC;
 int d[MAX];
@@ -210,15 +211,13 @@ int dfs(int x) { // THIS IS TARJAN ALGORITHM FOR SCC
 			s.pop();
 			scc.push_back(t);
 			finished[t] = 1;
-			d[t] = x;
+			d[t] = x; //to make scc recognizable with d
 			if (t == x) break;
 		}
 		SCC.push_back(scc);
 	}
 	return parent;
 }
-
-
 
 
 /*
@@ -236,16 +235,13 @@ int dfs(int x) { // THIS IS TARJAN ALGORITHM FOR SCC
 *
 *
 */
-
 bool visited[MAX];
-set<int> scc_edge[MAX];
-map<int, int> m;
-void Bfs(int x) {
+bool bfs(int x) {
 	memset(visited, 0, sizeof(visited));
-
 	queue<int> q;
-	q.push(x);
 	visited[x] = 1;
+	q.push(x);
+
 	while (!q.empty()) {
 		int cur = q.front();
 		q.pop();
@@ -253,16 +249,13 @@ void Bfs(int x) {
 		for (auto next : edge[cur]) {
 			if (visited[next]) continue;
 
+			if (d[next] != d[cur]) return 1;
 			visited[next] = 1;
-			if (d[next] != d[x]) {
-				scc_edge[m[d[x]]].insert(m[d[next]]);
-			}
-			else q.push(next);
-
+			q.push(next);
 		}
 	}
+	return false;
 }
-
 int main() {
 	ios::sync_with_stdio(false);
 	cin.tie(NULL);
@@ -271,16 +264,15 @@ int main() {
 	while (true) {
 		memset(d, 0, sizeof(d));
 		memset(finished, 0, sizeof(finished));
-		m.clear();
 		for (int i = 0; i < MAX; i++) {
 			edge[i].clear();
 		}
 		SCC.clear();
-		
+
 		cin >> N;
 		if (N == 0) break;
 		cin >> K;
-		for(int i=0;i<K;i++) {
+		for (int i = 0; i < K; i++) {
 			int s, e;
 			cin >> s >> e;
 			edge[s].pb(e);
@@ -290,25 +282,19 @@ int main() {
 			if (d[i] == 0) dfs(i);
 		}
 
-		
-		for (int i = 0; i < SCC.size(); i++) {
-			m[d[SCC.at(i).front()]] = i;
-		}
+		set<int> s;
 		for (auto scc : SCC) {
 			int temp = scc.front();
-			Bfs(temp);
-		}
-		vi answer;
-		for (int i = 0; i < SCC.size(); i++) {
-			if (scc_edge[i].empty()) {
-				for (auto j : SCC[i]) answer.push_back(j);
+			if (bfs(temp)) continue;
+			else {
+				for (auto i : scc) {
+					s.insert(i);
+				}
 			}
 		}
-		sort(answer.begin(), answer.end());
-		print(answer);
-
-		for (int i = 0; i < SCC.size(); i++) {
-			scc_edge[i].clear();
+		if (!s.empty()) {
+			for (auto i : s) cout << i << " ";
 		}
+		cout << endl;
 	}
 }
