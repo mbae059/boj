@@ -185,15 +185,16 @@ int sum(int idx) { //IF 3~5 sum is required it should be sum(5)-sum(2);
 	return result;
 }
 */
-
-#define MAX 200001
+// // THIS IS TARJAN ALGORITHM FOR SCC
+#define MAX 40001
 vii SCC;
-int d[MAX*2];
-bool finished[MAX*2];
-vi edge[MAX*2];
-int id = 0;
+int d[MAX];
+bool finished[MAX];
+vi edge[MAX];
+int id, SN; //mark sn[i]
 stack<int> s;
-int dfs(int x) { // THIS IS TARJAN ALGORITHM FOR SCC
+int sn[MAX]; //sn[i] is SCC number to which it belongs to
+int dfs(int x) {
 	d[x] = ++id;
 	s.push(x);
 	int parent = d[x];
@@ -213,15 +214,46 @@ int dfs(int x) { // THIS IS TARJAN ALGORITHM FOR SCC
 			s.pop();
 			scc.push_back(t);
 			finished[t] = 1;
+			sn[t] = SN;
 			//d[t] = x; //to make scc recognizable with d
 			if (t == x) break;
 		}
+		SN++;
 		SCC.push_back(scc);
 	}
 	return parent;
 }
 
+int oppo(int num) { //This is for 2-sat
+	return num % 2 ? num + 1 : num - 1;
+}
 
+void sat2() {
+	cin >> M >> N; // N is # of node, M is # of conditions
+	if (N == 0 && M == 0) return;
+	for (int i = 0; i < M; i++) {
+		int A, B;
+		cin >> A >> B;
+
+		A = A > 0 ? 2 * A - 1 : -2 * A; //positive num goes 1->1, 2->3, 3->5, 4->7, 5->9... and so on
+		B = B > 0 ? 2 * B - 1 : -2 * B; //negative num goes -1->2, -2->4, -3->6, -4->8... and so on
+
+		edge[oppo(A)].push_back(B);
+		edge[oppo(B)].push_back(A);
+	}
+
+	for (int i = 1; i <= 2 * N; i++) {
+		if (d[i] == 0) dfs(i);
+	}
+
+	for (int i = 1; i <= N; i++) {
+		if (sn[2 * i-1] == sn[2 * i]) {
+			cout << 0 << endl;
+			return;
+		}
+	}
+	cout << 1 << endl;
+}
 //////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////
 // This is Dijkstra
@@ -303,53 +335,20 @@ void bellman_ford(int start) {
 *
 *
 */
-
-int oppo(int num) {
-	return num % 2 ? num + 1 : num - 1;
-}
 int main() {
 	ios::sync_with_stdio(false);
 	cin.tie(NULL);
 	cout.tie(NULL);
 
 	while (true) {
-		cin >> N >> M;
-		if (N == 0 && M == 0) break;
-
-		for (int i = 0; i < N; i++) {
-			int A, B;
-			cin >> A >> B;
-			A = A > 0 ? A * 2 - 1 : -2*A;
-			B = B > 0 ? B * 2 - 1 : -2*B;
-
-			edge[oppo(A)].pb(B);
-			edge[oppo(B)].pb(A);
-		}
-
-		for (int i = 1; i <= 2*M; i++) {
-			if (d[i] == 0) dfs(i);
-		}
-		bool flag = 0;
-		for (int i = 0; i < SCC.size(); i++) {
-			sort(SCC.at(i).begin(), SCC.at(i).end());
-
-			for (int j = 0; j < SCC.at(i).size() - 1; j++) {
-				if (SCC.at(i).at(j) % 2) {
-					if (SCC.at(i).at(j + 1) == SCC.at(i).at(j) + 1) {
-						cout << 0 << endl;
-						flag = 1;
-						break;
-					}
-				}
-			}
-			if (flag) break;
-		}
-		if (flag == 0) cout << 1 << endl;
-
-		for (int i = 1; i <= 2*M; i++) edge[i].clear();
+		sat2();
+		if (N == 0 && M == 0) return 0;
 		memset(d, 0, sizeof(d));
 		memset(finished, 0, sizeof(finished));
-		id = 0;
+		memset(sn, 0, sizeof(sn));
+		for (int i = 1; i <= 2 * N; i++) edge[i].clear();
+		SN = 0;
 		SCC.clear();
+		id = 0;
 	}
 }
