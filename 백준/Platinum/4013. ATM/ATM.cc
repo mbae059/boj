@@ -104,8 +104,12 @@ void Solve() {
 	}
 
 	SNcash[sn[S]] = topologyCash[sn[S]]; 
-	//DfsCash(sn[S]);
-
+	
+	
+	/* My version
+	DfsCash(sn[S]);
+	*/
+///////////////////////////////////////// 
 	queue<int> q;
 	bool flag=false;
 	for(int i=0;i<SN;i++) {
