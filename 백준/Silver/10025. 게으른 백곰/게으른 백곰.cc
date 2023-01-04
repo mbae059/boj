@@ -946,52 +946,36 @@ int LCA(int a, int b) {
 *
 *
 */
-#define MAX 1000003
-ll ice[MAX] {};
+
+#define MAX 1000000
+ll ice[MAX+4] {};
+ll dp[MAX+4] {};
 ll answer = 0;
-vpll v;
 void Solve() {
     cin >> N >> K;
+
     rep(i,0,N-1) {
         ll g, x; cin >> g >> x;
-        v.pbk({x,g});
+        ice[x] = g;
     }
-    sort(all(v));
+    dp[0] = ice[0];
+
+    rep(i,1,MAX) {
+        dp[i] = dp[i-1] + ice[i];
+    }
+
     
-    ll frontIdx=0;
-    ll lastIdx=0;
-
-    ll ice = 0;
-    for(int i=0;i<=1000000;i++) {
-        while(frontIdx<v.size()) {
-            pll frontBucket = v[frontIdx];
-            
-            ll frontBucketX = frontBucket.first;
-            ll frontBucketIce = frontBucket.second;
-
-            if(i>=frontBucketX-K) {
-                ice+=frontBucketIce;
-                frontIdx++;
+    if(K<=MAX){
+        rep(i, 0, MAX) {
+            if(i+K<=MAX && i-K>=0) {
+                if(i-K-1<0) answer = max(answer, dp[i+K]);
+                else answer = max(answer, dp[i+K] - dp[i-K-1]);
             }
-            else break;
         }
-
-        while(lastIdx < v.size()) {
-            pll lastBucket = v[lastIdx];
-            
-            ll lastBucketX = lastBucket.first;
-            ll lastBucketIce = lastBucket.second;
-
-            if(i>lastBucketX+K) {
-                ice-=lastBucketIce;
-                lastIdx++;
-            }
-            else break;
-        }
-        answer = max(answer, ice);
-        
+        cout << answer;
     }
-    cout << answer;
+    else cout << dp[MAX];
+
 }
 int main() {
     ios::sync_with_stdio(false);
