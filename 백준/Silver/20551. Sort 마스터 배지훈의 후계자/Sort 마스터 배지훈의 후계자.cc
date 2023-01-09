@@ -1026,14 +1026,13 @@ void Solve() {
     }
     sort(all(v));
 
-    map<ll, ll> mp;
-    rep(i,0,N-1) {
-        if(mp[v[i]]==0) mp[v[i]] = i+1;
-    }
-
     while(M--) {
         ll temp; cin >> temp;
-        cout << (mp[temp] == 0 ? -1 : mp[temp]-1) << endl;
+
+        int idx = lower_bound(all(v), temp) - v.begin();
+        
+        if(idx>=N || v[idx]!=temp) cout << -1 << endl;
+        else cout << idx << endl;
     }
 }
 int main() {
