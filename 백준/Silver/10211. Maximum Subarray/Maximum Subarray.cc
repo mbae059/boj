@@ -1050,15 +1050,11 @@ void Solve() {
 
     int dp[1001] {};
 
-    int answer = -INF;
-    for(int i=1;i<=N;i++) {
-        int sum = 0;
-        for(int j=i;j<=N;j++) {
-            sum += v[j];
-            answer = max(answer, sum);
-        }
+    dp[1] = v[1];
+    for(int i=2;i<=N;i++) {
+        dp[i] = max(dp[i-1]+v[i], v[i]);
     }
-    cout << answer << endl;
+    cout << *max_element(dp+1, dp+N+1) << endl;
 }
 int main() {
     #ifdef BOJ
