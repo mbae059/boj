@@ -1043,60 +1043,36 @@ string add(string a, string b) {
 *
 *
 */
-#define MAX 505
-bool dp[MAX][MAX] {}; //1 is A wins, 0 is B wins
-
-int b[3];
+int b[3] {};
+int mex[555] {};
 void Solve() {
-    rep(i,0,2) cin >> b[i];
-    
-    rep(i,b[0],2*b[0]-1) {
-        rep(j,0,b[0]-1) {
-            dp[i][j] = 1;
-        }
+    rep(i,0,2) {
+        cin >> b[i];
     }
-    
-    rep(i,b[1],b[0]+b[1]-1) {
-        rep(j,0,b[0]-1) {
-            dp[i][j] = 1;
-        }
-    }
-    
-    rep(i,b[2],b[2]+b[0]-1) {
-        rep(j,0,b[0]-1) {
-            dp[i][j] = 1;
-        }
-    }
-    
+    bool chk[4] {};
     rep(i,1,500) {
-        rep(j,0,i) {
-            if(dp[i][j]) continue;
-
-            rep(k,0,2) {
-                if(i-b[k]>=0) {
-                    if(i-b[k] >= j)dp[i][j] = max(dp[i][j], !dp[i-b[k]][j]);
-                    else dp[i][j] = max(dp[i][j], !dp[j][i-b[k]]);
-                }
-                if(j-b[k]>=0 && i >= j-b[k]) dp[i][j] = max(dp[i][j], !dp[i][j-b[k]]);
+        rep(j,0,3) chk[j] = 0;
+        for(auto j : b) {
+            if(i-j>=0) {
+                chk[mex[i-j]] = 1;
             }
-            
+        }
+
+        rep(j,0,3) {
+            if(chk[j]==0) {
+                mex[i] = j;
+                break;
+            }
         }
     }
-
+    
     rep(i,1,5) {
-        vi v(2);
-        cin >> v[0] >> v[1];
-        sort(all(v));
+        int a, b; cin >> a >> b;
+        
+        int grundy = mex[a] ^ mex[b];
 
-        cout << (dp[v[1]][v[0]] ? 'A' : 'B') << endl;    
+        cout << (grundy ? "A" : "B") << endl;
     }
-
-    // rep(i,0, 10) {
-    //     rep(j,0,10) {
-    //         cout << dp[i][j] << " ";
-    //     }
-    //     cout << endl;
-    // }
 }
 int main() {
     #ifdef BOJ
