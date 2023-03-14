@@ -1074,9 +1074,7 @@ int dfs(int turn) {
 			}
 		}
 	}
-	if(turn==1 && mx==3) return 3;
-	else if(turn==1 && mx==2) return 2;
-	else if(turn==2 && mx==3) return 3;
+	if(turn==1 && mx==2) return 2;
 	else if(turn==2 && mx==1) return 1;
 	return 3;
 }
