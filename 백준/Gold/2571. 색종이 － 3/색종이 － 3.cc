@@ -1194,18 +1194,22 @@ void Solve() {
             }
         }
     }
+    rep(i,1,100) {
+        rep(j,1,100) {
+            matrix[i][j] = matrix[i][j] ? matrix[i-1][j]+ 1 : 0;
+        }
+    }
     int mx = 0;
 
     rep(i,1,100) {
         rep(j,1,100) {
             if(matrix[i][j]==0) continue;
 
-            rep(a,i,100) {
-                rep(b,j,100) {
-                    if(matrix[i][j]==0) continue;
+            int h = matrix[i][j];
 
-                    mx = max(mx, cal(i,j,a,b));
-                }
+            rep(k,j,100) {
+                h = min(h, matrix[i][k]);
+                mx = max(mx, h*(k-j+1));
             }
         }
     }
