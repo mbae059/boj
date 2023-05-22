@@ -5,6 +5,7 @@
 #define pbk push_back
 #define rep(i, a, b) for (int i=a; i<=b; i++) 
 #define all(v) (v).begin(), (v).end()
+
 using namespace std;
 using pii = pair<int, int>;
 using ll = long long;
@@ -22,32 +23,34 @@ using vtiii = vector<tiii>;
 using pll = pair<ll, ll>;
 using vpll = vector<pll>;
 int T, N, K, M, S, H, W, Q; // S is for MCMF, network flow
+int dir[4][2] = {{1,0},{-1,0}, {0,1}, {0,-1}};
 //ofstream out("temp.txt");
 //use setw(3) to get nice format for printing out 2-d array
 //ex) cout << setw(3) << "a" << endl;
 //to make a sorted vector's element unique, you should do v.erase(unique(v.begin(), v.end()), v.end())
-void print(int a, int b) {
-    cout << a << " " << b << endl;
-}
 
-void print(const string& str) {
-    cout << str << endl;
-}
 void print(pii a) {
     cout << a.first << " " << a.second << endl;
 }
 
-void print(int a) {
+template <typename T>
+void print(const T& a) {
     cout << a << endl;
 }
 
-void print(vi& v) {
-    for (auto i : v) {
+template <typename T>
+void print(vector<T>& v) {
+    for(auto i : v) {
         cout << i << " ";
     }
     cout << endl;
 }
-
+bool inRange(int y, int x) {
+    return 1<=y && y<=N && 1<=x && x<=M;
+}
+bool inRangeN(int y, int x) {
+    return 1<=y && y<=N && 1<=x && x<=N;
+}
 /*
 vector<int> combination;
 bool visited[1005];
@@ -121,9 +124,11 @@ int find_inversion_count(vector<int>& arr) {
 
 
 // THIS IS SEGMENT TREE AND LAZY PROPOGATION
+/*
 
 #define MAX 10000
-int v[MAX], s[4*MAX];
+int v[MAX], s[4*MAX]; //v starts from 0, s starts from 1.
+//nodeLeft and nodeRight always has to be 0 and N-1 as it is used in binary searching
 int segment(int node, int nodeLeft, int nodeRight) { // use when s, v is available and segment tree is about sum
     if (nodeLeft == nodeRight) {
         return s[node] = v[nodeLeft];
@@ -139,49 +144,52 @@ void update(int node, int idx, int nodeLeft, int nodeRight, int dif) { //Before 
     update(node * 2, idx, nodeLeft, mid, dif);
     update(node * 2 + 1, idx, mid + 1, nodeRight, dif);
 }
-int query(int node, int l, int r, int nodeLeft, int nodeRight) {
+int query(int node, int l, int r, int nodeLeft, int nodeRight) { //l and r is the range.
     if (nodeRight < l || r < nodeLeft) return 0;
     if (l <= nodeLeft && nodeRight <= r) return s[node];
     int mid = nodeLeft + (nodeRight - nodeLeft) / 2;
     return query(node * 2, l, r, nodeLeft, mid) + query(node * 2 + 1, l, r, mid + 1, nodeRight);
 }
 
-void Solve() {
-    cin >> N >> K;
+//This is lazy propogation. Beginning starts with segment(..) used in above
 
-    vpll v;
-    for(int i=0;i<N;i++) {
-        int M, V; cin >> M >> V;
-        v.pbk({M, V});
-    }
-    sort(all(v));
-
-    vll bag;
-    rep(i,0,K-1) {
-        int C; cin >> C;
-        bag.pbk(C);
-    }
-    sort(all(bag));
-
-    p_q<ll> pq;
-
-    ll sum = 0;
-    for(int i=0, j=0;j<bag.size();j++) {
-        int C = bag.at(j);
-
-        while(i <v.size() && v.at(i).first <= C) {
-            pq.push(v.at(i).second);
-            i++;
+void propogation(int node, int l, int r) {
+    if (lazy[node]) {
+        s[node] += (r - l + 1) * lazy[node];
+        if (l != r) {
+            lazy[node * 2] += lazy[node];
+            lazy[node * 2 + 1] += lazy[node];
         }
-        if(!pq.empty()) {
-            sum += pq.top();
-            // cout << pq.top() << " ";
-            pq.pop();
-        }
-        
+        lazy[node] = 0;
     }
-    cout << sum;
 }
+void update(int node, int l, int r, int nodeLeft, int nodeRight, int dif) { //This is for lazy propogation
+    propogation(node, nodeLeft, nodeRight);
+    if (nodeRight < l || r < nodeLeft) return;
+    if (l <= nodeLeft && nodeRight <= r) {
+        s[node] += (r - l + 1) * dif;
+        if (nodeLeft != nodeRight) {
+            lazy[node * 2] += dif;
+            lazy[node * 2 + 1] += dif;
+        }
+        lazy[node] = 0;
+    }
+    int mid = nodeLeft + (nodeRight - nodeLeft) / 2;
+    update(node * 2, l, r, nodeLeft, mid, dif);
+    update(node * 2 + 1, l, r, mid + 1, nodeRight, dif);
+    s[node] = s[node * 2] + s[node * 2 + 1];
+}
+ll query(int node, int l, int r, int nodeLeft, int nodeRight) { //s should be vll
+    propogation(node, nodeLeft, nodeRight);
+    if (nodeRight < l || r < nodeLeft) return;
+    if (l <= nodeLeft && nodeRight <= r) {
+        return s[node];
+    }
+    int mid = nodeLeft + (nodeRight - nodeLeft) / 2;
+    return query(node * 2, l, r, nodeLeft, mid)+query(node * 2+1, l, r, mid+1, nodeRight);
+}
+
+*/
 //////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////
 
@@ -799,28 +807,32 @@ void MCMF() {
 //////////////////////////////////////////////////////////
 
 // This is CCW
+
+//depending on input, the value ccw could be beyond INTEGER. Even long long could be dangerous. Watch carefully on input range
 /*
-struct Point {
-    int x, y;
-};
 struct Line {
-    Point p1, p2;
+    pll p1, p2;
 };
-int CCW(Point A, Point B, Point C) { //A, B, C is in order
-    int ccw = (B.x - A.x) * (C.y - A.y) - (C.x - A.x) * (B.y - A.y); //Cross product
+int CCW(pll A, pll B, pll C) { //A, B, C is in order
+    ll ccw = (B.first - A.first) * (C.second - A.second) - (C.first - A.first) * (B.second - A.second); //Cross product
     if(ccw>0) return 1;
     else if(ccw<0) return -1;
     else return 0;
 }
 //
-int LineInterSection(Line l1, Line l2) { //If l1, l2 is on the same line, then this isn't the one to use
-    int l1_l2 = CCW(l1.p1, l1.p2, l2.p1) * CCW(l1.p1, l1.p2, l2.p2);
-    int l2_l1 = CCW(l2.p1, l2.p2, l1.p1) * CCW(l2.p1, l2.p2, l1.p2);
-    int ret = (l1_l2 <= 0) && (l2_l1 <= 0);
-    return ret;
+int LineInterSection(Line l1, Line l2) { 
+	ll l1_l2 = CCW(l1.p1, l1.p2, l2.p1) * CCW(l1.p1, l1.p2, l2.p2);
+    ll l2_l1 = CCW(l2.p1, l2.p2, l1.p1) * CCW(l2.p1, l2.p2, l1.p2);
+	
+	if(l1_l2==0 && l2_l1==0) { //l1 and l2 is on the same line. If p1 <= p4 && p3 <= p2, the line meets.
+		if(l1.p1 > l1.p2) swap(l1.p1, l1.p2);
+		if(l2.p1 > l2.p2) swap(l2.p1, l2.p2);
+
+		return l1.p1 <= l2.p2 && l2.p1 <= l1.p2;
+	}
+    return (l1_l2 <= 0) && (l2_l1 <= 0);
 }
 */
-
 //////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////
 
@@ -861,14 +873,18 @@ void toggle(int& num, int i) {
 //////////////////////////////////////////////////////////
 
 // This is LCA with binary algorithm (O(logN))
-
 /*
 #define MAX 100001
-vi adj[MAX];
+vi edge[MAX];
 int parent[MAX][18]; //18 is log2(MAX)
 int level[MAX];
 int maxLevel;
 
+//maps node and depth and set 2^i parent
+//use before LCA function
+//set_tree(root, 0) should do it
+//if node 0 exists, then this function needs to be altered
+//get root node by inDegree array.
 void set_tree(int node, int pnode) {
     level[node] = level[pnode]+1;
     parent[node][0] = pnode;
@@ -876,9 +892,8 @@ void set_tree(int node, int pnode) {
     for(int i=1;i<=maxLevel;i++) {
         parent[node][i] = parent[parent[node][i-1]][i-1];
     }
- 
-    for(int i=0;i<adj[node].size();i++) {
-        int child = adj[node][i];
+
+    for(auto child : edge[node]) {
         if(child==pnode) continue;
         set_tree(child, node);
     }
@@ -889,8 +904,8 @@ void init() {
     for(int i=0;i<N-1;i++) {
         int a, b;
         cin >> a >> b;
-        adj[a].pbk(b);
-        adj[b].pbk(a);
+        edge[a].pbk(b);
+        edge[b].pbk(a);
     }
     maxLevel = (int)floor(log2(MAX));
 }
@@ -901,7 +916,8 @@ int LCA(int a, int b) {
     int target = a, compare = b;
     if(level[a] < level[b]) swap(target, compare); //target is deeper
 
-    if(level[target]!=level[compare]) {
+    //set level[] equal
+    if(level[target]!=level[compare]) { 
         for(int i=maxLevel;i>=0;i--) {
             if(level[parent[target][i]] >= level[compare]) {
                 target = parent[target][i];
@@ -910,7 +926,8 @@ int LCA(int a, int b) {
     }
 
     int ret = target;
-
+    
+    //set target==compare
     if(target!=compare) {
         for(int i=maxLevel;i>=0;i--) {
             if(parent[target][i]!=parent[compare][i]) {
@@ -941,6 +958,7 @@ void LIS(vi& v) { //vector v's size is N
         //if only strictly increasing sequence is allowed, for example 10 20 40... then it should be lower_bound
         //https://www.acmicpc.net/problem/12738    this problem only allows strictly increasing order meaning one should use lower_bound
         //https://www.acmicpc.net/problem/2352     this problem also allows strictly increasing order but the element in array is never overlapped so it can use both lower_bound and upper_bound
+        
         auto iter = lower_bound(all(lis), cur);
         //if found, replace the value with cur. if not, cur is the highest value of lis
         if(iter!=lis.end()) {
@@ -949,7 +967,7 @@ void LIS(vi& v) { //vector v's size is N
         }
         else {
             lis.pbk(cur);
-            dp[i] = lis.size();
+            dp[i] = lis.size(); 
         }
     }
     stack<int> s;
@@ -999,6 +1017,157 @@ string add(string a, string b) {
     return result;
 }
 */
+
+//rotate matrix by 90 degrees
+
+/*
+void rotate() { //rotating N*N matrix by 90 degrees clockwise
+    for(int i=0; i<N; i++) {
+        for(int j=0; j<N; j++) {
+            temp_arr[i][j] = arr[N - j -1][i]; //N-j+1 if 1~N
+        }
+    }
+    memmove(arr, temp_arr, sizeof(arr));
+}
+*/
+
+// Trie
+/*
+#define TRIENODE 26
+struct Trie {
+    Trie *next[TRIENODE]; // 다음 노드를 가리키는 포인터 배열
+    //map<string, Trie*> next;
+    bool finish;
+    Trie *fail; //for Aho-corasick
+    Trie() {
+        fill(next, next + TRIENODE, nullptr);
+        finish = false;
+    }
+ 
+    ~Trie() {
+        for (int i = 0; i < TRIENODE; i++) {
+            if (next[i]) delete next[i];
+        }
+    }
+
+    int getIdx(char c) {
+        return c-'A';
+    }
+    void insert(const string& str, int k=0) {
+        if (k==str.size()) {
+            finish = true;
+            return;
+        }
+
+        int curKey = getIdx(str[k]); //or 'a' or '0'
+ 
+        if (next[curKey]==nullptr) next[curKey] = new Trie();
+
+        next[curKey]->insert(str, k+1); // 다음 문자 삽입
+    }
+
+    void init() { //Aho-corasick. use when this is root
+        queue<Trie*> q;
+        q.push(this);
+        
+        while(!q.empty()) {
+            Trie* cur = q.front();
+            q.pop();
+
+            for(int i=0;i<TRIENODE;i++) {
+                Trie *nextTrie = cur->next[i];
+                if(nextTrie==nullptr) continue;
+
+                if(cur==this) {
+                    nextTrie->fail = this;
+                }
+                else {
+                    Trie *dest = cur->fail;
+
+                    while(dest!=this && dest->next[i]==nullptr) {
+                        dest = dest->fail;
+                    }
+                    if(dest->next[i]) dest = dest->next[i];
+
+                    nextTrie->fail = dest;
+                }
+                if(nextTrie->fail->finish) nextTrie->finish = true;
+                q.push(nextTrie);
+            }
+        }
+    }
+
+    void query(const string& str) { //for Aho-corasick
+        Trie *cur = this;
+        int cnt = 0;
+        for(auto c : str) {
+            int curKey = getIdx(c);
+            
+            while(cur!=this && cur->next[curKey]==nullptr) {
+                cur = cur->fail;
+            }
+
+            if(cur->next[curKey]) cur = cur->next[curKey];
+
+            if(cur->finish) cnt++;
+        }
+    }
+    bool find(const string& str, int k=0) {
+        if (k==str.size()) return true; // 문자열이 끝나는 위치를 반환
+        int curKey = getIdx(str[k]); //or 'a' or '0'
+        if (next[curKey] == nullptr) return false; // 찾는 값이 존재하지 않음
+        return next[curKey]->find(str, k+1); // 다음 문자를 탐색
+    }
+};
+
+*/
+/*
+//KMP
+vi makeTable(const string& pattern) {
+    int patternSize = pattern.size();
+
+    vi table(patternSize);
+
+    int j = 0;
+    for(int i=1;i<patternSize;i++) {
+        while(j>0 && pattern[i] != pattern[j]) {
+            j = table[j-1];
+        }
+
+        if(pattern[i]==pattern[j]) {
+            j+=1;
+            table[i] = j;
+        }
+    }
+    return table;
+}
+
+void KMP(const string& parent, const string& pattern) {
+    vi table = makeTable(pattern);
+
+    int parentSize = parent.size();
+    int patternSize = pattern.size();
+
+    int j =0;
+
+    for(int i=0;i<parentSize;i++) {
+        while(j>0 && parent[i] != pattern[j]) {
+            j = table[j-1];
+        }
+        if(parent[i] == pattern[j]) {
+            if(j == patternSize-1) {
+                cout << i-patternSize + 2 << endl; //index starts from 1
+                j = table[j];
+            }
+            else {
+                j++;
+            }
+        }
+    }
+}
+
+*/
+
 /*
 *
 *
@@ -1014,11 +1183,41 @@ string add(string a, string b) {
 *
 *
 */
+vpll v;
+vll c;
+void Solve() {
+    cin >> N >> K;
+    rep(i,1,N) {
+        ll a, b; cin >> a >> b; //M V
+        v.pbk({a,b});
+    }
+    rep(i,1,K) {
+        ll temp; cin >> temp;
+        c.pbk(temp);
+    }
+    sort(all(c));
+    sort(all(v));
 
+    int j =0;
+    p_q<ll> pq;
+    ll sum = 0;
+    for(auto i : c) {
+        while(j<N && v[j].first <= i) {
+            pq.push(v[j].second);
+            j++;
+        }
+        if(!pq.empty()) {
+            sum += pq.top();
+            pq.pop();
+        }
+    }
+    cout << sum;
+    
+
+}
 int main() {
     ios::sync_with_stdio(false);
     cin.tie(NULL);
     cout.tie(NULL);
-
     Solve();
 }
