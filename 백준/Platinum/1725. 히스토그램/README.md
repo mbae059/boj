@@ -4,11 +4,11 @@
 
 ### 성능 요약
 
-메모리: 3336 KB, 시간: 8 ms
+메모리: 5928 KB, 시간: 12 ms
 
 ### 분류
 
-자료 구조(data_structures), 분할 정복(divide_and_conquer), 세그먼트 트리(segtree), 스택(stack)
+자료 구조, 분할 정복, 세그먼트 트리, 스택
 
 ### 문제 설명
 
