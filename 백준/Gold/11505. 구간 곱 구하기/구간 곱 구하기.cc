@@ -28,12 +28,7 @@ int dir[4][2] = {{1,0},{-1,0}, {0,1}, {0,-1}};
 //use setw(3) to get nice format for printing out 2-d array
 //ex) cout << setw(3) << "a" << endl;
 //to make a sorted vector's element unique, you should do v.erase(unique(v.begin(), v.end()), v.end())
-bool inRange(int y, int x) {
-    return 1<=y && y<=N && 1<=x && x<=M;
-}
-bool inRangeN(int y, int x) {
-    return 1<=y && y<=N && 1<=x && x<=N;
-}
+
 void print(pii a) {
     cout << a.first << " " << a.second << endl;
 }
@@ -50,28 +45,33 @@ void print(vector<T>& v) {
     }
     cout << endl;
 }
-
+bool inRange(int y, int x) {
+    return 1<=y && y<=N && 1<=x && x<=M;
+}
+bool inRangeN(int y, int x) {
+    return 1<=y && y<=N && 1<=x && x<=N;
+}
 /*
 vector<int> combination;
 bool visited[1005];
 void dfs(int idx, int cnt) { //implement with dfs(1, 0). N and K must be global variable
-   if(cnt==K) {
-      for(auto i : combination) {
-         cout << i << " ";
-      }
-      cout << endl;
-      return;
-   }
-   
-   for(int i=idx;i<=N;i++) { //idx, N을 잘볼것
-      if(visited[i]==1) continue;
-      
-      visited[i]=1;
-      combination.push_back(i);
-      dfs(i+1, cnt+1); //be careful with i+1, cnt+1
-      visited[i]=0;
-      combination.pop_back();
-   }
+	if(cnt==K) {
+		for(auto i : combination) {
+			cout << i << " ";
+		}
+		cout << endl;
+		return;
+	}
+	
+	for(int i=idx;i<=N;i++) { //idx, N을 잘볼것
+		if(visited[i]==1) continue;
+		
+		visited[i]=1;
+		combination.push_back(i);
+		dfs(i+1, cnt+1); //be careful with i+1, cnt+1
+		visited[i]=0;
+		combination.pop_back();
+	}
 }
 */
 /* Basic Info
@@ -124,82 +124,50 @@ int find_inversion_count(vector<int>& arr) {
 
 
 // THIS IS SEGMENT TREE AND LAZY PROPOGATION
-#define MOD 1000000007
 #define MAX 1000001
+#define MOD 1000000007
 ll v[MAX], s[4*MAX]; //v starts from 0, s starts from 1.
-bool visited[4*MAX] {};
 //nodeLeft and nodeRight always has to be 0 and N-1 as it is used in binary searching
 ll segment(int node, int nodeLeft, int nodeRight) { // use when s, v is available and segment tree is about sum
     if (nodeLeft == nodeRight) {
-        s[node] = v[nodeLeft];
-        if(s[node]==0) {
-            visited[node] = 1;
-            s[node] = 1;
-        }
-        return s[node];
+        return s[node] = v[nodeLeft];
     }
-    int mid = nodeLeft + (nodeRight - nodeLeft) / 2;
-    ll lval = segment(node * 2, nodeLeft, mid);
-    ll rval = segment(node * 2 + 1, mid + 1, nodeRight);
-    s[node] = (lval * rval) % MOD;
-    if(visited[node*2] || visited[node*2+1]) {
-        visited[node] = 1;
-    }
-    return s[node];
+	int mid = (nodeLeft+nodeRight)/2;
+    return s[node] = (segment(node * 2, nodeLeft, mid) * segment(node * 2 + 1, mid + 1, nodeRight)) % MOD;
 }
-
-void update(int node, int idx, int nodeLeft, int nodeRight, ll num) {
+void update(int node, int idx, int nodeLeft, int nodeRight, ll num) { 
     if (idx < nodeLeft || nodeRight < idx) return;
     if (nodeLeft == nodeRight) {
-        if(num==0) {
-            visited[node] = 1;
-            s[node] = 1;
-        }
-        else {
-            visited[node] = 0;
-            s[node] = num;
-        }
+        s[node] = num;
         return;
     }
-
-    int mid = nodeLeft + (nodeRight - nodeLeft) / 2;
+    int mid = (nodeLeft+nodeRight)/2;
     update(node * 2, idx, nodeLeft, mid, num);
     update(node * 2 + 1, idx, mid + 1, nodeRight, num);
 
-    if((visited[node*2]) || visited[node*2+1]) {
-        visited[node] = 1;
-    }
-    else {
-        visited[node] = 0;
-    }
-
-    s[node] = s[node*2] * s[node*2+1] % MOD;
+    s[node] = (s[node*2] * s[node*2+1]) % MOD;
 }
-
 ll query(int node, int l, int r, int nodeLeft, int nodeRight) { //l and r is the range.
     if (nodeRight < l || r < nodeLeft) return 1;
-    if (l <= nodeLeft && nodeRight <= r) {
-        if(visited[node]) return 0;
-        return s[node];
-    }
-    int mid = nodeLeft + (nodeRight - nodeLeft) / 2;
+    if (l <= nodeLeft && nodeRight <= r) return s[node];
+	int mid = (nodeLeft+nodeRight)/2;
     return (query(node * 2, l, r, nodeLeft, mid) * query(node * 2 + 1, l, r, mid + 1, nodeRight)) % MOD;
 }
 void Solve() {
     cin >> N >> M >> K;
-    rep(i,0,N-1) cin >> v[i];
     M+=K;
+    rep(i,0,N-1) cin >> v[i];
     segment(1,0,N-1);
     while(M--) {
         ll a, b, c; cin >> a >> b >> c;
         if(a==1) {
             b--;
             v[b] = c;
-            update(1,b,0,N-1, c);
+            update(1,b,0,N-1,c);
         }
         else {
             b--; c--;
-            cout << query(1, b, c, 0, N-1) << endl;
+            cout << query(1,b,c,0,N-1) << endl;
         }
     }
 }
