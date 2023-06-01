@@ -442,6 +442,7 @@ void Dijkstra() {
             if(nextCost>M) continue;
             if(d[next][nextCost] > nextDistance) {
                 d[next][nextCost] = nextDistance;
+                rep(j,nextCost+1,M) d[next][j] = min(d[next][j], nextDistance);
                 pq.push({next, nextCost, nextDistance});
             }
         }
