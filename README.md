@@ -43,3 +43,25 @@ tie(a,b,c) = q.front();
 
 As you can see, structured binding is better.
 Try not to use **get<0>(q.front())** or **tie(a,b,c)** unless it is necessary.
+
+
+# Range-based for loop
+
+```c++
+vector<int> v(5);
+iota(v.begin(), v.end(), 1);
+for(auto i : v) {
+    cout << i << endl;
+}
+```
+
+Ordinary for loop is easy
+
+```c++
+int now = 3;
+for(auto next : {now-1, now+1, now*2}) {
+    if(next>0) cout << next << endl;
+}
+```
+
+Now this is something
