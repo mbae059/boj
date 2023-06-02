@@ -21,6 +21,7 @@ q.push({1,2,3});
 # Structured binding
 
 Structured binding was first introduced in [C++17](https://en.cppreference.com/w/cpp/language/structured_binding).
+It is often used together with list-initialization.
 In short, this kind of coding is possible.
 
 ```c++
