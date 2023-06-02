@@ -9,61 +9,6 @@ This kind of language is recommended for coding test for company as the students
 
 C++ is god in PS
 
-# Algorithms
-
-Segment tree -> Fenwick Tree -> Lazy Propagation -> Persistent Segment Tree (Too much)
-
-imos
-
-Combinatorics
-
-Bitmasking (Often used with DP)
-
-Shortest Path(Dijkstra, SPFA(Bellman Ford), Floyd-warshall)
-
-Disjoint set -> MST
-
-Stack
-
-Game Theory
-
-Primality Test
-
-Maximum Flow
-
-MCMF
-
-Exponentiation By Squaring
-
-Offline Query
-
-LCA
-
-Topological Sorting
-
-CCW -> Line Segment Intersection Check -> Convex Hull
-
-SCC
-
-FTT
-
-KMP -> Trie -> Aho-corasick
-
-Meet in the middle
-
-LIS
-
-0-1 BFS
-
-Mo's
-
-Bipartitie Graph
-
-
-
-
-
-
 # List-initialization 
 
 List-initialization was first introduced in [C++11](https://en.cppreference.com/w/cpp/language/list_initialization)
