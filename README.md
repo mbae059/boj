@@ -11,7 +11,7 @@ C++ is god in PS
 
 The template code i use for PS is template_code.cpp.
 
-# There are
+# List of Algorithms included in template_code.cpp
 
 1. Basic Combination (Permuation could be made also)
 2. segment tree. lazy propagation. persistent segment tree. fenwick tree
