@@ -10,7 +10,8 @@ This kind of language is recommended for coding test for company as the students
 C++ is god in PS
 
 The template code i use for PS is template_code.cpp.
-There are
+
+# There are
 
 1. Basic Combination (Permuation could be made also)
 2. segment tree. lazy propagation. persistent segment tree. fenwick tree
