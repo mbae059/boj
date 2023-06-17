@@ -9,6 +9,24 @@ This kind of language is recommended for coding test for company as the students
 
 C++ is god in PS
 
+The template code i use for PS is template_code.cpp.
+There are
+
+1. Basic Combination (Permuation could be made also)
+2. segment tree. lazy propagation. persistent segment tree. fenwick tree
+3. tarjan algorithm. DAG and DP with SCC. 2-SAT
+4. Shortest Path(Dijkstra, SPFA, Floyd-Warshall)
+5. DSU, Kruskal
+6. Network Flow (Dinic, Edmonds Karp)
+7. MCMF (Edmonds Karp+SPFA)
+8. CCW. Line Intersection
+9. LCA
+10. LIS
+11. Trie, aho-corasick
+12. KMP
+13. Extented Euclidian
+
+
 # List-initialization 
 
 List-initialization was first introduced in [C++11](https://en.cppreference.com/w/cpp/language/list_initialization)
