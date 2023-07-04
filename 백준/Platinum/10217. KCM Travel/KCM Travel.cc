@@ -25,12 +25,14 @@ using pll = pair<ll, ll>;
 using vpll = vector<pll>;
 using spii = set<pii>;
 int T, N, K, M, S, H, W, Q; // S is for MCMF, network flow
-int dir[4][2] = {{1,0},{-1,0}, {0,1}, {0,-1}};
+int dy[8] = {1,-1,0,0,1,1,-1,-1};
+int dx[8] = {0,0,1,-1,1,-1,1,-1};
 //ofstream out("temp.txt");
 //use setw(3) to get nice format for printing out 2-d array
 //ex) cout << setw(3) << "a" << endl;
 //to make a sorted vector's element unique, you should do v.erase(unique(v.begin(), v.end()), v.end())
-
+// unordered_map<char,int> dx = {{'D',0},{'L',-1},{'R',1},{'U',0}};
+// unordered_map<char,int> dy = {{'D',1},{'L',0},{'R',0},{'U',-1}}
 //diagonal counting. l[y+x], r[y-x+N]
 void print(pii a) {
     cout << a.first << " " << a.second << endl;
@@ -96,11 +98,10 @@ A-Z is 26 char
 /*
 
 #define MAX 100001
-ll v[MAX], s[4*MAX]; //v starts from 0, s starts from 1.
-//nodeLeft and nodeRight always has to be 0 and N-1 as it is used in binary searching
-ll segment(int node, int nodeLeft, int nodeRight) { // use when s, v is available and segment tree is about sum
+ll a[MAX], s[4*MAX];
+ll segment(int node, int nodeLeft, int nodeRight) { // use when s, a is available and segment tree is about sum
     if (nodeLeft == nodeRight) {
-        return s[node] = v[nodeLeft];
+        return s[node] = a[nodeLeft];
     }
 	int mid = (nodeLeft+nodeRight)/2;
     return s[node] = segment(node * 2, nodeLeft, mid) + segment(node * 2 + 1, mid + 1, nodeRight);
@@ -412,64 +413,49 @@ void sat2() { // (x1 or x2) and (Nx1 or x3) //Nx1->x2, Nx2->x1. x1->x3, Nx3->Nx1
 */
 //////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////
-// This is Dijkstra
 #define MAX 101
-vtiii edge[MAX]; // first is idx, second is weight of edge
+vtiii edge[MAX];
 int d[MAX][10001] {};
-struct cmp { //pii
-    bool operator() (const tiii& i, const tiii& j) {
-        return get<2>(i) > get<2>(j);
-    }
-};
-void Dijkstra() {
-    p_q<tiii, vtiii, cmp> pq; //node, cost
-    pq.push({1, 0, 0});
-    d[1][0] = 0;
-    while (!pq.empty()) {
-        int cur, cost, dist;
-        tie(cur, cost, dist) = pq.top();
-        pq.pop();
-        if(d[cur][cost] < dist) continue;
-        if(cur==N) {
-            cout << dist << endl;
-            return;
-        }
-        for (auto t : edge[cur]) {
-            int next, nextCost, nextDistance;
-            tie(next, nextCost, nextDistance) = t;
-            nextCost+=cost;
-            nextDistance+=dist;
-            if(nextCost>M) continue;
-            if(d[next][nextCost] > nextDistance) {
-                d[next][nextCost] = nextDistance;
-                rep(j,nextCost+1,M) d[next][j] = min(d[next][j], nextDistance);
-                pq.push({next, nextCost, nextDistance});
-            }
-        }
-    }
-    cout << "Poor KCM" << endl;
-}
 
 void Solve() {
     cin >> N >> M >> K;
     rep(i,1,K) {
-        int a, b, c, d; cin >> a >> b >> c >> d;
-        edge[a].pbk({b,c,d});
+        int u,v,c,d; cin >> u >> v >> c >> d;
+        edge[u].pbk({v, c, d});
     }
+    
     rep(i,1,N) {
-        rep(j,0,M) {
-            d[i][j] = INF;
-        }
+        rep(j,0,M) d[i][j]=INF;
     }
     d[1][0] = 0;
-    Dijkstra();
 
-    rep(i,1,N) edge[i].clear();
+    rep(j,0,M) {
+        rep(i,1,N) {
+            if(j!=0) d[i][j] = min(d[i][j], d[i][j-1]);
+            if(d[i][j]==INF) continue;
+
+            for(auto [nextNode, nextCost, nextDist] : edge[i]) {
+                nextCost += j;
+                if(nextCost > M) continue;
+
+                if(d[nextNode][nextCost]>d[i][j]+nextDist) {
+                    d[nextNode][nextCost] = d[i][j]+nextDist;
+                }
+            }
+        }
+    }
+
+    int answer=INF;
+    rep(j,0,M) {
+        answer = min(answer, d[N][j]);
+    }
+    if(answer==INF) cout << "Poor KCM";
+    else cout << answer;
 }
 int main() {
     ios::sync_with_stdio(false);
     cin.tie(NULL);
     cout.tie(NULL);
-    cin>> T;
-    while(T--) Solve();
+    cin >> T;
+    Solve();
 }
