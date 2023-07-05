@@ -576,38 +576,41 @@ int f[MAX][MAX], c[MAX][MAX];
 int level[MAX], work[MAX];
 int start, target;
 int bias;
+//when edge, c, start, target, bias is set, implement using Network_Flow()
+
 void addEdge(int s, int e, int value=1) { //Decide whether graph is directed graph or undirected graph
     edge[s].pbk(e);
     edge[e].pbk(s);
     c[s][e] = value;
 }
-bool bfs() { // to create level and decide flow is no longer needed
+bool bfs() { // to create level graph and decide if flow is no longer needed
     queue<int> q;
     q.push(start); //
     memset(level, -1, sizeof(level));
     level[start] = 0;
     while (!q.empty()) {
-        int now = q.front();
+        int cur = q.front();
         q.pop();
-        for (auto next : edge[now]) {
-            if (level[next] == -1 && c[now][next] - f[now][next] > 0) {
+        for (auto next : edge[cur]) {
+            if (level[next] == -1 && c[cur][next] - f[cur][next] > 0) {
                 q.push(next);
-                level[next] = level[now] + 1;
+                level[next] = level[cur] + 1;
             }
         }
     }
     if (level[target] == -1) return false;
     else return true;
 }
-int maxFlow(int now, int flow) { // dfs for dinic
-    if (now == target) return flow;
-    for (int& i = work[now]; i < edge[now].size(); i++) {
-        int next = edge[now][i];
-        if (level[next] == level[now] + 1 && c[now][next] - f[now][next] > 0) {
-            int ret = maxFlow(next, min(flow, c[now][next] - f[now][next]));
+int dfs(int cur, int flow) { //cur node has flow to offer to the next level
+    if (cur == target) return flow;
+
+    for (int& i = work[cur]; i < edge[cur].size(); i++) {
+        int next = edge[cur][i];
+        if (level[next] == level[cur] + 1 && c[cur][next] - f[cur][next] > 0) {
+            int ret = dfs(next, min(flow, c[cur][next] - f[cur][next]));
             if (ret > 0) {
-                f[now][next] += ret;
-                f[next][now] -= ret;
+                f[cur][next] += ret;
+                f[next][cur] -= ret; //always remember to create reverse flow
                 return ret;
             }
         }
@@ -619,7 +622,7 @@ int Network_Flow() {
     while (bfs()) {
         memset(work, 0, sizeof(work));
         while (true) {
-            int flow = maxFlow(start, INF); //INF varies from range to range
+            int flow = dfs(start, INF); //INF varies from range to range
             if (flow == 0) break;
             totalFlow += flow;
         }
@@ -1157,8 +1160,9 @@ void manacher(string str) {
 */
 //////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////
+/*
 //Bipartite matching
-#define MAX 1001
+#define MAX 100001
 vi edge[MAX]; 
 int slit[MAX];
 bool done[MAX]; 
@@ -1178,6 +1182,85 @@ bool dfs(int x) {
 	return false;
 }
 
+*/
+//////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////
+/*
+*
+*
+*
+*
+*
+*
+*
+*
+*
+*
+*
+*
+*
+*/
+#define MAX 1001
+vi edge[MAX];
+bool used[MAX];
+//matched with A/B group. Thus B[A[i]] == i
+int A[MAX] {};
+int B[MAX] {};
+int dist[MAX] {}; //distance between non matched vertex in A
+void bfs() { //set dist array
+	qi q; //push only A array not B
+	
+	for(int i=1;i<=N;i++) {
+		if(used[i]==0) {
+			dist[i]=0;
+			q.push(i);
+		}
+		else {
+			dist[i]=INF;
+		}
+	}
+
+	while(!q.empty()) {
+		int cur = q.front();
+		q.pop();
+
+		for(auto next : edge[cur]) {
+			if(B[next]!=-1 && dist[B[next]]==INF) {
+				dist[B[next]] = dist[cur] + 1;
+				q.push(B[next]);
+			}
+		}
+	}
+}
+
+bool dfs(int cur) {
+	for(auto next : edge[cur]) {
+		if(B[next]==-1 || (dist[B[next]] == dist[cur]+1 && dfs(B[next]))) {
+			used[cur] = 1;
+			A[cur] = next;
+			B[next] = cur;
+			return true;
+		}
+	}
+	return false;
+}
+void Hopcroft_Karp() {
+	memset(A, -1, sizeof(A));
+	memset(B, -1, sizeof(B));
+
+	int totalFlow = 0;
+	while(true) {
+		bfs();
+
+		int flow =0;
+		for(int i=1;i<=N;i++) {
+			if(used[i]==0 && dfs(i)) flow++;
+		}
+		if(flow==0) break;
+		totalFlow += flow;
+	}
+	cout << totalFlow;
+}
 void Solve() {
 	cin >> N >> M;
 	rep(i,1,N) {
@@ -1187,12 +1270,8 @@ void Solve() {
 			edge[i].pbk(a);
 		}
 	}
-	int cnt=0;
-	rep(i,1,N) {
-		memset(done, 0, sizeof(done));
-		if(dfs(i)) cnt++;
-	}
-	cout << cnt;
+
+	Hopcroft_Karp();
 }
 int main() {
     ios::sync_with_stdio(false);
