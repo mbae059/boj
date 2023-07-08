@@ -1170,7 +1170,7 @@ void Solve() {
     auto r = 0;
     int answer= INF;
     while(r<v.size()) {
-        while(l<v.size() && l<=r) {
+        while(l<=r) {
             if(bfs(v[l], v[r])) {
                 answer = min(answer, v[r]-v[l]);
                 l++;
