@@ -582,7 +582,6 @@ void unionParent(int a1, int b1, int a2, int b2) {
 bool isSameParent(int a1, int b1, int a2, int b2) {
     return getParent(getUnique(a1,b1)) == getParent(getUnique(a2,b2));
 }
-spii s;
 void Solve() {
     cin >> N >> K;
     rep(i,1,N*N) {
@@ -590,7 +589,6 @@ void Solve() {
     }
     memset(visited, -1, sizeof(visited));
     qtiii q;
-    pii integrate;
     rep(i,1,K) {
         int a, b; cin >> a >> b;
         q.push({a,b, 0});
@@ -620,6 +618,7 @@ void Solve() {
             visited[ny][nx]=d+1;
         }
     }
+    assert(false);
 }
 int main() {
 	ios::sync_with_stdio(false);
