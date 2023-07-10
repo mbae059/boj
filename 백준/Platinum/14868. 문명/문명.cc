@@ -554,33 +554,22 @@ void floyd_warshall() {
 //////////////////////////////////////////////////////////
 
 // This is Union Find, DSU
-int parent[4000003]; //parent[MAX] should be 1, 2, 3...
+int parent[100001]; //parent[MAX] should be 1, 2, 3...
 int visited[2001][2001] {};
-bool civilization[4000003];
-int getUnique(int a, int b) {
-    return (a-1)*N+b;
-}
+pii civil[100001] {};
 int getParent(int num) {
     if (parent[num] == num) return num;
     return parent[num] = getParent(parent[num]);
 }
-void unionParent(int a1, int b1, int a2, int b2) {
-    int x = getUnique(a1, b1);
-    int y = getUnique(a2, b2);
-    
-    x = getParent(x);
-    y = getParent(y);
-
-    if((civilization[x] ^ civilization[y])==0) {
-        if(x<y) parent[y] = x;
-        else parent[x] = y;
-    }
-    else if(civilization[x]) parent[y] = x;
-    else parent[x] = y;
+void unionParent(int a, int b) {
+    a = getParent(a);
+    b = getParent(b);
+    if (a < b) parent[b] = a;
+    else parent[a] = b;
 }
 
-bool isSameParent(int a1, int b1, int a2, int b2) {
-    return getParent(getUnique(a1,b1)) == getParent(getUnique(a2,b2));
+bool isSameParent(int a, int b) {
+    return getParent(a) == getParent(b);
 }
 void Solve() {
     cin >> N >> K;
@@ -588,37 +577,53 @@ void Solve() {
         parent[i] = i;
     }
     memset(visited, -1, sizeof(visited));
-    qtiii q;
+    qpii q;
     rep(i,1,K) {
         int a, b; cin >> a >> b;
-        q.push({a,b, 0});
-        visited[a][b] = 0;
-        civilization[getUnique(a,b)] = 1;
+        q.push({a,b});
+        parent[i] = i;
+        visited[a][b] = i;
     }
-    int cnt = 1;
-    while(!q.empty()) {
-        auto [y,x,d] = q.front();
-        q.pop();
-        rep(i,0,3) {
-            int ny = y+dy[i];
-            int nx = x+dx[i];
-            if(!inRangeN(ny,nx)) continue;
-            if(!isSameParent(y,x, ny, nx)) {
-                if(civilization[getParent(getUnique(ny,nx))]) {
-                    cnt++;
+    int answer = 0;
+    while(1) {
+        qpii qq;
+        while(!q.empty()) {
+            auto [y,x] = q.front();
+            qq.push(q.front());
+            q.pop();
+            rep(i,0,3) {
+                int ny = y+dy[i];
+                int nx = x+dx[i];
+                if(!inRangeN(ny,nx)) continue;
+                if(visited[ny][nx]!=-1 && !isSameParent(visited[y][x], visited[ny][nx])) {
+                    unionParent(visited[y][x], visited[ny][nx]);
+                    K--;
                 }
-                if(cnt==K) {
-                    cout << visited[ny][nx];
-                    return;
-                }
-                unionParent(y, x, ny, nx);
             }
-            if(visited[ny][nx]!=-1) continue;
-            q.push({ny,nx,d+1});
-            visited[ny][nx]=d+1;
+        }
+        if(K==1) {
+            cout << answer << endl;
+            return;
+        }
+        answer++;
+        while(!qq.empty()) {
+            auto [y,x] = qq.front();
+            qq.pop();
+
+            rep(i,0,3) {
+                int ny = y+dy[i];
+                int nx = x+dx[i];
+                if(!inRangeN(ny,nx)) continue;
+                if(visited[ny][nx]!=-1 && !isSameParent(visited[y][x], visited[ny][nx])) {
+                    unionParent(visited[y][x], visited[ny][nx]);
+                    K--;
+                }
+                if(visited[ny][nx]!=-1) continue;
+                q.push({ny,nx});
+                visited[ny][nx] = visited[y][x];
+            }
         }
     }
-    assert(false);
 }
 int main() {
 	ios::sync_with_stdio(false);
