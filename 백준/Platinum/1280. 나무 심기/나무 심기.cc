@@ -40,8 +40,8 @@ pll query(ll node, ll l, ll r, ll nodeLeft, ll nodeRight) { //l and r is the ran
 }
 
 ll makePositive(ll num) {
-    if(num<0) return -(-num%MOD)+MOD;
-    return num%MOD;
+    num%= MOD;
+    return num < 0 ? num+MOD : num;
 }
 void Solve() {
     cin >> N;
