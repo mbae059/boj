@@ -1391,24 +1391,17 @@ void Hopcroft_Karp() {
 }
 */
 #define MOD 1000000
-ll dp[101][101][2];
+ll dp[101][101];
 
-ll dfs(int left, int right, bool goLeft) {
-    ll &ret = dp[left][right][goLeft];
+ll dfs(int left, int right) {
+    ll &ret = dp[left][right];
     if(ret!=-1) return ret;
     if(left+right==0) return ret = 1;
     ret = 0;
-    if(goLeft) {
-        if(left==0) return ret = 0;
-        for(int i=1;i<=left;i++) {
-            ret = (ret + dfs(i-1,right+left-i,0)) % MOD;
-        }
-    }
-    else {
-        if(right==0) return ret = 0;
-        for(int i=1;i<=right;i++) {
-            ret = (ret + dfs(left+i-1, right-i,1)) % MOD;
-        }
+    if(left==0) return 0;
+    for(int i=1;i<=left;i++) {
+        ret += dfs(right+left-i, i-1);
+        ret %= MOD;
     }
     return ret;
 }
@@ -1422,8 +1415,7 @@ void Solve() {
     ll sum = 0;
     memset(dp, -1, sizeof(dp));
     rep(i,1,N) {
-        sum += dfs(i-1,N-i,0);
-        sum += dfs(i-1,N-i,1);
+        sum += dfs(i-1,N-i) * 2;
         sum %= MOD;
     }
     cout << sum;
