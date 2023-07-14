@@ -1484,14 +1484,23 @@ bool moved(const vvi& a, const vvi& b) {
     }
     return false;
 }
+#define LIMIT 5
 void dfs(int cur, vvi& src) {
-    if(cur<=5) {
+    if(cur<=LIMIT) {
         rep(i,1,N) {
             rep(j,1,N) answer = max(answer, src[i][j]);
         }
-        if(cur==5) return;
+        if(cur==LIMIT) return;
     }
+    int mx = 0;
+    rep(i,1,N) {
+        rep(j,1,N) {
+            mx = max(mx, src[i][j]);
+        }
+    }
+    if(mx * pow(2,LIMIT-cur) <= answer) return;
     vvi temp(N+1, vi(N+1));
+
     vcpy(temp, src);
     doLeft(temp);
     if(moved(temp, src)) dfs(cur+1, temp);
