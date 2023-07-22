@@ -1440,13 +1440,12 @@ vector<string> split(string input, char delimiter) {
 #define MOD 10007
 void Solve() {
 	cin >> N >> M >> H;
-	rep(i,1,N+1) {
+	cin.ignore(true);
+	rep(i,1,N) {
 		string str; getline(cin, str);
-		if(str.empty()) continue;
-
 		vector<string> res = split(str, ' ');
 		for(auto s : res) {
-			v[i-1].pbk(stoi(s));
+			v[i].pbk(stoi(s));
 		}
 	}
 	dp[0][0] = 1;
