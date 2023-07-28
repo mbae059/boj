@@ -1442,8 +1442,11 @@ bool isBigger(string str1, string str2) {
     if(str1.size()==str2.size()) return str1<str2;
     return str1.size() < str2.size();
 }
+bool dp[81][81] {};
 void dfs(const string& str, int pIdx, int idx) {
-    for(int i=idx+1;i<min(N, idx+15);i++) {
+    if(dp[pIdx][idx]) return;
+    dp[pIdx][idx] = 1;
+    for(int i=idx+1;i<N;i++) {
         if(isBigger(str.substr(pIdx,idx-pIdx), str.substr(idx,i-idx))) dfs(str, idx, i);
     }
     if(isBigger(str.substr(pIdx,idx-pIdx), str.substr(idx)) && isBigger(str.substr(idx), answer)) {
