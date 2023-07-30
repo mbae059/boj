@@ -1432,7 +1432,6 @@ void Solve() {
     vll prefix(L+1);
     rep(i,1,L) {
         cin >> v[i];
-        prefix[i] = prefix[i-1] + v[i];
     }
 
     rep(i,1,L) {
