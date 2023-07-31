@@ -594,7 +594,8 @@ void merge(int a, int b) {
     a = getParent(a);
     b = getParent(b);
 
-    parent[a] = b;
+    if(a>b) parent[b] = a;
+    else parent[a] = b;
 }
 
 bool isSameParent(int a, int b) {
