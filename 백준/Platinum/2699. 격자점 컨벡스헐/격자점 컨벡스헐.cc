@@ -844,8 +844,7 @@ bool cmp(const Point& a, const Point& b) {
     ll ccw = CCW(v[0], a, b);
     if(ccw) return ccw<0;
     if(a.y==b.y) return a.x < b.x;
-    else if(a.x==b.x) return a.y < b.y;
-    else return a.x < b.x;
+    return a.y > b.y;
 }
 void Convex_Hull() {
     sort(all(v), [](Point a, Point b) {
@@ -871,7 +870,6 @@ void Convex_Hull() {
         }
         answer.pbk(v[i]);
     }
-    if(answer.size()>=3 && CCW(answer.at(answer.size()-2), answer.back(), answer[0])==0) answer.pop_back();
     cout << answer.size() << endl;
     for(auto p : answer) {
         cout << p.x << " " << p.y << endl;
