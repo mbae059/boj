@@ -150,9 +150,13 @@ void Solve() {
     vll dp(N+1);
     rep(i,1,N) cin >> a[i];
 
+    deque<pll> dq; //value, idx
     rep(i,1,N) {
-        dp[i] = query(1, max(1, i-D), max(1,i-1), 1,N) + a[i];
-        update(1, i, 1, N, dp[i]);
+        if(!dq.empty() && (i-dq.front().second)>D) dq.pop_front();
+        if(dq.empty() || dq.front().first<0) dp[i] = a[i];
+        else dp[i] = dq.front().first + a[i];
+        while(!dq.empty() && dq.back().first <= dp[i]) dq.pop_back();
+        dq.pbk({dp[i], i});
     }
     cout << *max_element(dp.begin()+1, dp.end());
 }
