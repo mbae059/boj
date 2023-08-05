@@ -1427,44 +1427,43 @@ bool dfs(int cur) {
 #define MAX 500001
 ll a[MAX] {};
 ll b[MAX] {};
-
+ll prefix[MAX] {};
+ll dp[MAX] {};
 void Solve() {
     cin >> N >> M;
-
-    rep(i,1,N) cin >> a[i];
+    rep(i,1,N) {
+        cin >> a[i];
+        prefix[i] = prefix[i-1] + a[i];
+    }
     rep(i,1,N) cin >> b[i];
 
-    deque<ll> dq1;
-    deque<pll> dq2; //monotone
-    
-    dq1.pbk(0);
-    rep(i,1,M-1) dq1.pbk(-1e18);
-
-    dq2.pbk({M,0});
+    if(M>N) {
+        cout << prefix[N];
+        return;
+    }
+    if(M==1) {
+        cout << a[1] + b[1];
+        return;
+    }
+    deque<pll> dq;
+    dq.pbk({0,0});
 
     ll answer=0;
-    ll offset = 0;
-
     rep(i,1,N) {
-        ll l = dq2.back().second + offset - a[i];
-        offset += a[i];
-        dq1.push_front(l-offset);
+        if(i-dq.front().second>M) dq.pop_front();
+        
+        dp[i] = dq.front().first + prefix[i-1] - a[i];
 
-        while(dq2.size() && l-offset>=dq2.front().second) {
-            dq2.pop_front();
-        }
-
-        dq2.push_front({i+M, l-offset});
-        answer = max(answer, dq1.back() + b[i] + offset);
-
-        dq1.pop_back();
-        if(dq2.back().first==i) dq2.pop_back();
+        while(!dq.empty() && dq.back().first<=dp[i] - prefix[i]) {
+            dq.pop_back();
+        } 
+        dq.pbk({dp[i]-prefix[i], i});
     }
-    while(!dq1.empty()) {
-        answer = max(answer, dq1.front() + offset);
-        dq1.pop_front();
+    rep(i,M,N) {
+        answer = max(answer, dp[i-M] + prefix[i] - prefix[i-M] + b[i]);
     }
-    print(answer);
+    for (int i = N-M+1; i <=N; i++) answer = max(answer, prefix[N] - prefix[i] + dp[i]);
+    cout << answer;
 }
 int main() {
 	ios::sync_with_stdio(false);
