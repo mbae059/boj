@@ -1558,7 +1558,7 @@ void Solve() {
     dp[0] = 1;
     vi v;
     v.pbk(3);
-    for(int i=4;i<=20;i+=2) {
+    for(int i=4;i<=10;i+=2) {
         dp[i] += dp[i-2] * 3;
         for(int j=i-4;j>0;j-=2) {
             dp[i] += dp[j]*2;
