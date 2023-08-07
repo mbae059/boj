@@ -3,14 +3,6 @@ This is a auto push repository for Baekjoon Online Judge created with [BaekjoonH
 
 
 # This is the coding technique for problem solving(PS) in c++
-Other languages isn't frequently used in PS such as python or java.
-
-This kind of language is recommended for coding test for company as the students won't dig deep in PS.
-
-C++ is god in PS
-
-
-
 
 # List-initialization 
 
@@ -45,8 +37,6 @@ tie(a,b,c) = q.front();
 ```
 
 As you can see, structured binding is better.
-Try not to use **get<0>(q.front())** or **tie(a,b,c)** unless it is necessary.
-
 
 # Range-based for loop
 
@@ -58,8 +48,6 @@ for(auto i : v) {
 }
 ```
 
-Ordinary for loop is easy
-
 ```c++
 int now = 3;
 for(auto next : {now-1, now+1, now*2}) {
@@ -67,7 +55,9 @@ for(auto next : {now-1, now+1, now*2}) {
 }
 ```
 
-Now this is something
+This could be used when you want to move in an 2*2 matrix. For example {{-1,0},{1,0}}...
+
+
 
 
 
