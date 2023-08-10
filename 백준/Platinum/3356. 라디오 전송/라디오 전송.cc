@@ -1305,11 +1305,6 @@ void Solve() {
     auto pi = getPi(str);
     int val = pi.back();
 
-    if(val==0) {
-        cout << N;
-        return;
-    }
-
     cout << str.size()-val;
 }
 int32_t main() {
