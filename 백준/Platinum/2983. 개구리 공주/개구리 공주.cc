@@ -1569,7 +1569,7 @@ void Solve() {
         }
         else if(c=='B') {
             auto iter = bc.find({x+y,x,y});
-            if(iter==prev(bc.end())) continue;
+            if(iter==bc.end()) continue;
 
             auto [a,nx,ny] = *(next(iter));
 
