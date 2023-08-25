@@ -1563,14 +1563,11 @@ void Solve() {
     for(auto i : divisor) {
         int k = (B/i+1);
         int n = i*k-B;
-        if(n>0 && gcd(A+n,B+n)==i) {
-            if(mn>lcm(A+n,B+n)) {
-                mn = lcm(A+n, B+n);
-                answer = n;
-            }
+        if(mn>lcm(A+n,B+n)) {
+            mn = lcm(A+n, B+n);
+            answer = n;
         }
     }
-    assert(answer!=0);
     cout << answer;
 }
 int32_t main() {
