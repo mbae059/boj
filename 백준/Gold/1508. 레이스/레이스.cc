@@ -2074,7 +2074,6 @@ bool dfs(int cur) {
 */
 void Solve() {
     cin >> N >> M >> K;
-    if(M==0) return;
     int a[K+1];
     rep(i,1,K) cin >> a[i];
     int l = 1;
