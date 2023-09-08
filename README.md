@@ -57,6 +57,9 @@ for(auto next : {now-1, now+1, now*2}) {
 
 This could be used when you want to move in an 2*2 matrix. For example {{-1,0},{1,0}}...
 
+# Matrix Implementation
+
+Supports matrix multiplication, addition, power, rotation, transpose, print(for debug)
 
 
 
@@ -78,3 +81,4 @@ The template code i use for PS is template_code.cpp.
 11. Trie, aho-corasick
 12. KMP
 13. Extented Euclidian
+14. ACL mod int
