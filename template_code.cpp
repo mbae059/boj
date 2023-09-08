@@ -1,4 +1,570 @@
-#include <bits/stdc++.h>
+#include<bits/stdc++.h>
+#include <type_traits>
+
+namespace atcoder {
+
+namespace internal {
+
+#ifndef _MSC_VER
+template <class T>
+using is_signed_int128 =
+    typename std::conditional<std::is_same<T, __int128_t>::value ||
+                                  std::is_same<T, __int128>::value,
+                              std::true_type,
+                              std::false_type>::type;
+
+template <class T>
+using is_unsigned_int128 =
+    typename std::conditional<std::is_same<T, __uint128_t>::value ||
+                                  std::is_same<T, unsigned __int128>::value,
+                              std::true_type,
+                              std::false_type>::type;
+
+template <class T>
+using make_unsigned_int128 =
+    typename std::conditional<std::is_same<T, __int128_t>::value,
+                              __uint128_t,
+                              unsigned __int128>;
+
+template <class T>
+using is_integral = typename std::conditional<std::is_integral<T>::value ||
+                                                  is_signed_int128<T>::value ||
+                                                  is_unsigned_int128<T>::value,
+                                              std::true_type,
+                                              std::false_type>::type;
+
+template <class T>
+using is_signed_int = typename std::conditional<(is_integral<T>::value &&
+                                                 std::is_signed<T>::value) ||
+                                                    is_signed_int128<T>::value,
+                                                std::true_type,
+                                                std::false_type>::type;
+
+template <class T>
+using is_unsigned_int =
+    typename std::conditional<(is_integral<T>::value &&
+                               std::is_unsigned<T>::value) ||
+                                  is_unsigned_int128<T>::value,
+                              std::true_type,
+                              std::false_type>::type;
+
+template <class T>
+using to_unsigned = typename std::conditional<
+    is_signed_int128<T>::value,
+    make_unsigned_int128<T>,
+    typename std::conditional<std::is_signed<T>::value,
+                              std::make_unsigned<T>,
+                              std::common_type<T>>::type>::type;
+#endif
+
+template <class T>
+using is_signed_int_t = std::enable_if_t<is_signed_int<T>::value>;
+
+template <class T>
+using is_unsigned_int_t = std::enable_if_t<is_unsigned_int<T>::value>;
+
+template <class T> using to_unsigned_t = typename to_unsigned<T>::type;
+
+}  // namespace internal
+
+}  // namespace atcoder
+
+
+namespace atcoder {
+
+namespace internal {
+
+constexpr long long safe_mod(long long x, long long m) {
+    x %= m;
+    if (x < 0) x += m;
+    return x;
+}
+
+struct barrett {
+    unsigned int _m;
+    unsigned long long im;
+
+    explicit barrett(unsigned int m) : _m(m), im((unsigned long long)(-1) / m + 1) {}
+
+    unsigned int umod() const { return _m; }
+
+    unsigned int mul(unsigned int a, unsigned int b) const {
+
+        unsigned long long z = a;
+        z *= b;
+#ifdef _MSC_VER
+        unsigned long long x;
+        _umul128(z, im, &x);
+#else
+        unsigned long long x =
+            (unsigned long long)(((unsigned __int128)(z)*im) >> 64);
+#endif
+        unsigned int v = (unsigned int)(z - x * _m);
+        if (_m <= v) v += _m;
+        return v;
+    }
+};
+
+constexpr long long pow_mod_constexpr(long long x, long long n, int m) {
+    if (m == 1) return 0;
+    unsigned int _m = (unsigned int)(m);
+    unsigned long long r = 1;
+    unsigned long long y = safe_mod(x, m);
+    while (n) {
+        if (n & 1) r = (r * y) % _m;
+        y = (y * y) % _m;
+        n >>= 1;
+    }
+    return r;
+}
+
+constexpr bool is_prime_constexpr(int n) {
+    if (n <= 1) return false;
+    if (n == 2 || n == 7 || n == 61) return true;
+    if (n % 2 == 0) return false;
+    long long d = n - 1;
+    while (d % 2 == 0) d /= 2;
+    constexpr long long bases[3] = {2, 7, 61};
+    for (long long a : bases) {
+        long long t = d;
+        long long y = pow_mod_constexpr(a, t, n);
+        while (t != n - 1 && y != 1 && y != n - 1) {
+            y = y * y % n;
+            t <<= 1;
+        }
+        if (y != n - 1 && t % 2 == 0) {
+            return false;
+        }
+    }
+    return true;
+}
+template <int n> constexpr bool is_prime = is_prime_constexpr(n);
+
+constexpr std::pair<long long, long long> inv_gcd(long long a, long long b) {
+    a = safe_mod(a, b);
+    if (a == 0) return {b, 0};
+
+    long long s = b, t = a;
+    long long m0 = 0, m1 = 1;
+
+    while (t) {
+        long long u = s / t;
+        s -= t * u;
+        m0 -= m1 * u;  // |m1 * u| <= |m1| * s <= b
+
+
+        auto tmp = s;
+        s = t;
+        t = tmp;
+        tmp = m0;
+        m0 = m1;
+        m1 = tmp;
+    }
+    if (m0 < 0) m0 += b / s;
+    return {s, m0};
+}
+
+constexpr int primitive_root_constexpr(int m) {
+    if (m == 2) return 1;
+    if (m == 167772161) return 3;
+    if (m == 469762049) return 3;
+    if (m == 754974721) return 11;
+    if (m == 998244353) return 3;
+    int divs[20] = {};
+    divs[0] = 2;
+    int cnt = 1;
+    int x = (m - 1) / 2;
+    while (x % 2 == 0) x /= 2;
+    for (int i = 3; (long long)(i)*i <= x; i += 2) {
+        if (x % i == 0) {
+            divs[cnt++] = i;
+            while (x % i == 0) {
+                x /= i;
+            }
+        }
+    }
+    if (x > 1) {
+        divs[cnt++] = x;
+    }
+    for (int g = 2;; g++) {
+        bool ok = true;
+        for (int i = 0; i < cnt; i++) {
+            if (pow_mod_constexpr(g, (m - 1) / divs[i], m) == 1) {
+                ok = false;
+                break;
+            }
+        }
+        if (ok) return g;
+    }
+}
+template <int m> constexpr int primitive_root = primitive_root_constexpr(m);
+
+unsigned long long floor_sum_unsigned(unsigned long long n,
+                                      unsigned long long m,
+                                      unsigned long long a,
+                                      unsigned long long b) {
+    unsigned long long ans = 0;
+    while (true) {
+        if (a >= m) {
+            ans += n * (n - 1) / 2 * (a / m);
+            a %= m;
+        }
+        if (b >= m) {
+            ans += n * (b / m);
+            b %= m;
+        }
+
+        unsigned long long y_max = a * n + b;
+        if (y_max < m) break;
+        n = (unsigned long long)(y_max / m);
+        b = (unsigned long long)(y_max % m);
+        std::swap(m, a);
+    }
+    return ans;
+}
+
+}  // namespace internal
+
+}  // namespace atcoder
+
+
+namespace atcoder {
+
+long long pow_mod(long long x, long long n, int m) {
+    assert(0 <= n && 1 <= m);
+    if (m == 1) return 0;
+    internal::barrett bt((unsigned int)(m));
+    unsigned int r = 1, y = (unsigned int)(internal::safe_mod(x, m));
+    while (n) {
+        if (n & 1) r = bt.mul(r, y);
+        y = bt.mul(y, y);
+        n >>= 1;
+    }
+    return r;
+}
+
+long long inv_mod(long long x, long long m) {
+    assert(1 <= m);
+    auto z = internal::inv_gcd(x, m);
+    assert(z.first == 1);
+    return z.second;
+}
+
+std::pair<long long, long long> crt(const std::vector<long long>& r,
+                                    const std::vector<long long>& m) {
+    assert(r.size() == m.size());
+    int n = int(r.size());
+    long long r0 = 0, m0 = 1;
+    for (int i = 0; i < n; i++) {
+        assert(1 <= m[i]);
+        long long r1 = internal::safe_mod(r[i], m[i]), m1 = m[i];
+        if (m0 < m1) {
+            std::swap(r0, r1);
+            std::swap(m0, m1);
+        }
+        if (m0 % m1 == 0) {
+            if (r0 % m1 != r1) return {0, 0};
+            continue;
+        }
+
+
+        long long g, im;
+        std::tie(g, im) = internal::inv_gcd(m0, m1);
+
+        long long u1 = (m1 / g);
+        if ((r1 - r0) % g) return {0, 0};
+
+        long long x = (r1 - r0) / g % u1 * im % u1;
+
+        r0 += x * m0;
+        m0 *= u1;  // -> lcm(m0, m1)
+        if (r0 < 0) r0 += m0;
+    }
+    return {r0, m0};
+}
+
+long long floor_sum(long long n, long long m, long long a, long long b) {
+    assert(0 <= n && n < (1LL << 32));
+    assert(1 <= m && m < (1LL << 32));
+    unsigned long long ans = 0;
+    if (a < 0) {
+        unsigned long long a2 = internal::safe_mod(a, m);
+        ans -= 1ULL * n * (n - 1) / 2 * ((a2 - a) / m);
+        a = a2;
+    }
+    if (b < 0) {
+        unsigned long long b2 = internal::safe_mod(b, m);
+        ans -= 1ULL * n * ((b2 - b) / m);
+        b = b2;
+    }
+    return ans + internal::floor_sum_unsigned(n, m, a, b);
+}
+
+}  // namespace atcoder
+
+namespace atcoder {
+
+namespace internal {
+
+struct modint_base {};
+struct static_modint_base : modint_base {};
+
+template <class T> using is_modint = std::is_base_of<modint_base, T>;
+template <class T> using is_modint_t = std::enable_if_t<is_modint<T>::value>;
+
+}  // namespace internal
+
+template <int m, std::enable_if_t<(1 <= m)>* = nullptr>
+struct static_modint : internal::static_modint_base {
+    using mint = static_modint;
+
+  public:
+    static constexpr int mod() { return m; }
+    static mint raw(int v) {
+        mint x;
+        x._v = v;
+        return x;
+    }
+
+    static_modint() : _v(0) {}
+    template <class T, internal::is_signed_int_t<T>* = nullptr>
+    static_modint(T v) {
+        long long x = (long long)(v % (long long)(umod()));
+        if (x < 0) x += umod();
+        _v = (unsigned int)(x);
+    }
+    template <class T, internal::is_unsigned_int_t<T>* = nullptr>
+    static_modint(T v) {
+        _v = (unsigned int)(v % umod());
+    }
+
+    unsigned int val() const { return _v; }
+
+    mint& operator++() {
+        _v++;
+        if (_v == umod()) _v = 0;
+        return *this;
+    }
+    mint& operator--() {
+        if (_v == 0) _v = umod();
+        _v--;
+        return *this;
+    }
+    mint operator++(int) {
+        mint result = *this;
+        ++*this;
+        return result;
+    }
+    mint operator--(int) {
+        mint result = *this;
+        --*this;
+        return result;
+    }
+
+    mint& operator+=(const mint& rhs) {
+        _v += rhs._v;
+        if (_v >= umod()) _v -= umod();
+        return *this;
+    }
+    mint& operator-=(const mint& rhs) {
+        _v -= rhs._v;
+        if (_v >= umod()) _v += umod();
+        return *this;
+    }
+    mint& operator*=(const mint& rhs) {
+        unsigned long long z = _v;
+        z *= rhs._v;
+        _v = (unsigned int)(z % umod());
+        return *this;
+    }
+    mint& operator/=(const mint& rhs) { return *this = *this * rhs.inv(); }
+
+    mint operator+() const { return *this; }
+    mint operator-() const { return mint() - *this; }
+
+    mint pow(long long n) const {
+        assert(0 <= n);
+        mint x = *this, r = 1;
+        while (n) {
+            if (n & 1) r *= x;
+            x *= x;
+            n >>= 1;
+        }
+        return r;
+    }
+    mint inv() const {
+        if (prime) {
+            assert(_v);
+            return pow(umod() - 2);
+        } else {
+            auto eg = internal::inv_gcd(_v, m);
+            assert(eg.first == 1);
+            return eg.second;
+        }
+    }
+
+    friend mint operator+(const mint& lhs, const mint& rhs) {
+        return mint(lhs) += rhs;
+    }
+    friend mint operator-(const mint& lhs, const mint& rhs) {
+        return mint(lhs) -= rhs;
+    }
+    friend mint operator*(const mint& lhs, const mint& rhs) {
+        return mint(lhs) *= rhs;
+    }
+    friend mint operator/(const mint& lhs, const mint& rhs) {
+        return mint(lhs) /= rhs;
+    }
+    friend bool operator==(const mint& lhs, const mint& rhs) {
+        return lhs._v == rhs._v;
+    }
+    friend bool operator!=(const mint& lhs, const mint& rhs) {
+        return lhs._v != rhs._v;
+    }
+
+  private:
+    unsigned int _v;
+    static constexpr unsigned int umod() { return m; }
+    static constexpr bool prime = internal::is_prime<m>;
+};
+
+template <int id> struct dynamic_modint : internal::modint_base {
+    using mint = dynamic_modint;
+
+  public:
+    static int mod() { return (int)(bt.umod()); }
+    static void set_mod(int m) {
+        assert(1 <= m);
+        bt = internal::barrett(m);
+    }
+    static mint raw(int v) {
+        mint x;
+        x._v = v;
+        return x;
+    }
+
+    dynamic_modint() : _v(0) {}
+    template <class T, internal::is_signed_int_t<T>* = nullptr>
+    dynamic_modint(T v) {
+        long long x = (long long)(v % (long long)(mod()));
+        if (x < 0) x += mod();
+        _v = (unsigned int)(x);
+    }
+    template <class T, internal::is_unsigned_int_t<T>* = nullptr>
+    dynamic_modint(T v) {
+        _v = (unsigned int)(v % mod());
+    }
+
+    unsigned int val() const { return _v; }
+
+    mint& operator++() {
+        _v++;
+        if (_v == umod()) _v = 0;
+        return *this;
+    }
+    mint& operator--() {
+        if (_v == 0) _v = umod();
+        _v--;
+        return *this;
+    }
+    mint operator++(int) {
+        mint result = *this;
+        ++*this;
+        return result;
+    }
+    mint operator--(int) {
+        mint result = *this;
+        --*this;
+        return result;
+    }
+
+    mint& operator+=(const mint& rhs) {
+        _v += rhs._v;
+        if (_v >= umod()) _v -= umod();
+        return *this;
+    }
+    mint& operator-=(const mint& rhs) {
+        _v += mod() - rhs._v;
+        if (_v >= umod()) _v -= umod();
+        return *this;
+    }
+    mint& operator*=(const mint& rhs) {
+        _v = bt.mul(_v, rhs._v);
+        return *this;
+    }
+    mint& operator/=(const mint& rhs) { return *this = *this * rhs.inv(); }
+
+    mint operator+() const { return *this; }
+    mint operator-() const { return mint() - *this; }
+
+    mint pow(long long n) const {
+        assert(0 <= n);
+        mint x = *this, r = 1;
+        while (n) {
+            if (n & 1) r *= x;
+            x *= x;
+            n >>= 1;
+        }
+        return r;
+    }
+    mint inv() const {
+        auto eg = internal::inv_gcd(_v, mod());
+        assert(eg.first == 1);
+        return eg.second;
+    }
+
+    friend mint operator+(const mint& lhs, const mint& rhs) {
+        return mint(lhs) += rhs;
+    }
+    friend mint operator-(const mint& lhs, const mint& rhs) {
+        return mint(lhs) -= rhs;
+    }
+    friend mint operator*(const mint& lhs, const mint& rhs) {
+        return mint(lhs) *= rhs;
+    }
+    friend mint operator/(const mint& lhs, const mint& rhs) {
+        return mint(lhs) /= rhs;
+    }
+    friend bool operator==(const mint& lhs, const mint& rhs) {
+        return lhs._v == rhs._v;
+    }
+    friend bool operator!=(const mint& lhs, const mint& rhs) {
+        return lhs._v != rhs._v;
+    }
+
+  private:
+    unsigned int _v;
+    static internal::barrett bt;
+    static unsigned int umod() { return bt.umod(); }
+};
+template <int id> internal::barrett dynamic_modint<id>::bt(998244353);
+
+using modint998244353 = static_modint<998244353>;
+using modint1000000007 = static_modint<1000000007>;
+using modint = dynamic_modint<-1>;
+
+namespace internal {
+
+template <class T>
+using is_static_modint = std::is_base_of<internal::static_modint_base, T>;
+
+template <class T>
+using is_static_modint_t = std::enable_if_t<is_static_modint<T>::value>;
+
+template <class> struct is_dynamic_modint : public std::false_type {};
+template <int id>
+struct is_dynamic_modint<dynamic_modint<id>> : public std::true_type {};
+
+template <class T>
+using is_dynamic_modint_t = std::enable_if_t<is_dynamic_modint<T>::value>;
+
+}  // namespace internal
+
+}  // namespace atcoder
+
+using namespace atcoder;
+#pragma GCC optimize("O3,unroll-loops")
+#pragma GCC target("avx2,bmi,bmi2,lzcnt,popcnt")
 #define endl '\n'
 #define INF 987654321
 #define p_q priority_queue
@@ -7,34 +573,275 @@
 #define all(v) (v).begin(), (v).end()
 
 using namespace std;
-using pii = pair<int, int>;
 using ll = long long;
-using ull = unsigned long long;
+#define int ll
+using pii = pair<int, int>;
 using vi = vector<int>;
-using vull = vector<ull>;
 using vvi = vector<vi>;
 using vpii = vector<pii> ;
-using vll = vector<ll>;
 using mii = map<int, int>;
 using si = set<int>;
 using qi = queue<int>;
 using qpii = queue<pii>;
 using tiii = tuple<int, int, int> ; //get<0>(t);
 using vtiii = vector<tiii>;
-using pll = pair<ll, ll>;
-using vpll = vector<pll>;
 using spii = set<pii>;
-int T, N, K, M, S, H, W, Q; // S is for MCMF, network flow
-int dir[8][2] = {{1,0},{-1,0}, {0,1}, {0,-1}, {1,1},{1,-1},{-1,1},{-1,-1}};
-//ofstream out("temp.txt");
+using qtiii = queue<tiii>;
+using mint = modint;
+using vm = vector<mint>;
+int A,B,C,D,E,F,G,H,I,J,K,L,M,N,O,P,Q,R,S,T,U,V,W,X,Y,Z;
+int dy[8] = {1,-1,0,0,1,1,-1,-1};
+int dx[8] = {0,0,1,-1,1,-1,1,-1};
+//vvi matrix(N, vector<int>(N));
+//for finding the intersection of Line(x1,y1,x2,y2) and Line(x3,y3,x4,y4)
+//do not solve with tenary search
+// Px= (x1*y2 - y1*x2)*(x3-x4) - (x1-x2)*(x3*y4 - y3*x4)
+// Py= (x1*y2 - y1*x2)*(y3-y4) - (y1-y2)*(x3*y4 - y3*x4)
+
+//int to string : to_string
+//string to int : stoi
+
 //use setw(3) to get nice format for printing out 2-d array
 //ex) cout << setw(3) << "a" << endl;
+
 //to make a sorted vector's element unique, you should do v.erase(unique(v.begin(), v.end()), v.end())
+
 // unordered_map<char,int> dx = {{'D',0},{'L',-1},{'R',1},{'U',0}};
 // unordered_map<char,int> dy = {{'D',1},{'L',0},{'R',0},{'U',-1}}
+
 //diagonal counting. l[y+x], r[y-x+N]
+
+struct Matrix {
+    vvi m;
+    int l;
+    ll mod;
+    Matrix(int l=10) : l(l) {
+        m = vvi(l+1, vi(l+1));
+        mod = 1e9+7;
+    }
+ 
+    void setEye() {
+        for(int i=1;i<=l;i++) m[i][i]=1;
+    }
+
+    Matrix operator * (const Matrix& other) const {
+        Matrix ret;
+        for(int i=1;i<=l;i++) {
+            for(int j=1;j<=l;j++) {
+                for(int k=1;k<=l;k++) {
+                    ret.m[i][j] += m[i][k] * other.m[k][j] % mod;
+                    ret.m[i][j]%=mod;
+                }
+            }
+        }
+        return ret;
+    }
+
+    Matrix operator + (const Matrix& other) const {
+        Matrix ret;
+        for(int i=1;i<=l;i++) {
+            for(int j=1;j<=l;j++) {
+                ret.m[i][j] = m[i][j] + other.m[i][j];
+            }
+        }
+        return ret;
+    }
+    Matrix power(ll k) { //matrix = matrix.power(k);
+        Matrix ret;
+        if(k==0) {
+            ret.setEye();
+            return ret;
+        }
+        if(k==1) {
+            return *this;
+        }
+
+        ret = power(k/2);
+        ret = ret * ret;
+        if(k&1) ret = ret * (*this);
+        return ret;
+    }
+    void rotate90CC() {
+        vvi after(l+1, vi(l+1));
+        for(int i=1;i<=l;i++) {
+            for(int j=1;j<=l;j++) { 
+                after[i][j] = m[j][l-i+1];
+            }
+        }
+        for(int i=1;i<=l;i++) {
+            for(int j=1;j<=l;j++) {
+                m[i][j] = after[i][j];
+            }
+        }
+    }
+    void transpose() {
+        vvi after(l+1, vi(l+1));
+        for(int i=1;i<=l;i++) {
+            for(int j=1;j<=l;j++) {
+                after[i][j] = m[j][i];
+            }
+        }
+        for(int i=1;i<=l;i++) {
+            for(int j=1;j<=l;j++) {
+                m[i][j] = after[i][j];
+            }
+        }
+    }
+    void print(int N, int M) {
+        for(int i=1;i<=N;i++) {
+            for(int j=1;j<=M;j++) {
+                cout << m[i][j] << " ";
+            }
+            cout << endl;
+        }
+        cout << endl;
+    }
+};
+template<typename T, class BinaryOperation = plus<T>>
+struct Segtree {
+    vector<T> a;
+    vector<T> s;
+    int n;
+    BinaryOperation op;
+    Segtree(int n=1) : n(n), op(BinaryOperation()) {
+        a.resize(n+1);
+        s.resize(4*n+1);
+    }
+    T segment(int node, int nodeLeft, int nodeRight) {
+        if (nodeLeft == nodeRight) {
+            return s[node] = a[nodeLeft];
+        }
+        int mid = (nodeLeft+nodeRight)/2;
+        return s[node] = op(segment(node * 2, nodeLeft, mid), segment(node * 2 + 1, mid + 1, nodeRight));
+    }
+    void update(int node, int nodeLeft, int nodeRight, int idx, T num) {
+        if (idx < nodeLeft || nodeRight < idx) return;
+        if (nodeLeft == nodeRight) {
+            s[node] = num;
+            return;
+        }
+        int mid = (nodeLeft+nodeRight)/2;
+        update(node * 2, nodeLeft, mid, idx, num);
+        update(node * 2 + 1, mid + 1, nodeRight, idx, num);
+
+        s[node] = op(s[node * 2], s[node * 2 + 1]);
+    }
+    T query(int node, int l, int r, int nodeLeft, int nodeRight) {
+        if(nodeRight<l || r<nodeLeft) return 0; //could be 0, 1e9, -1e9
+        if(l<=nodeLeft && nodeRight<=r) return s[node];
+        int mid = nodeLeft+nodeRight>>1;
+        return op(query(node * 2, l, r, nodeLeft, mid), query(node * 2 + 1, l, r, mid + 1, nodeRight));
+    }
+    void print(int node, int nodeLeft, int nodeRight) {
+        cout << nodeLeft << " " << nodeRight << " : " << s[node] << endl;
+        if(nodeLeft==nodeRight) return;
+
+        int mid = (nodeLeft + nodeRight) >> 1;
+        print(node*2, nodeLeft, mid);
+        print(node*2+1, mid+1, nodeRight);
+    }
+};
+
+struct lazySegtree {
+    vi a;
+    vi s;
+    vi lazy;
+    int n;
+    lazySegtree(int n) : n(n) {
+        a.resize(n+1);
+        s.resize(4*n+1);
+        lazy.resize(4*n+1);
+    }
+
+    int merge(int a, int b) {
+        return a+b;
+    }
+    int segment(int node, int nodeLeft, int nodeRight) { // use when s, a is available and segment tree is about sum
+        if (nodeLeft == nodeRight) {
+            return s[node] = a[nodeLeft];
+        }
+        int mid = (nodeLeft+nodeRight)/2;
+        return s[node] = merge(segment(node * 2, nodeLeft, mid), segment(node * 2 + 1, mid + 1, nodeRight));
+    }
+    void propagation(int node, int l, int r) {
+        if (lazy[node]) {
+            s[node] += (r - l + 1) * lazy[node];
+            if (l != r) {
+                lazy[node * 2] += lazy[node];
+                lazy[node * 2 + 1] += lazy[node];
+            }
+            lazy[node] = 0;
+        }
+    }
+    void update(int node, int l, int r, int nodeLeft, int nodeRight, int dif) { //This is for lazy propagation
+        propagation(node, nodeLeft, nodeRight);
+        if (nodeRight < l || r < nodeLeft) return;
+        if (l <= nodeLeft && nodeRight <= r) {
+            s[node] += (nodeRight-nodeLeft + 1) * dif;
+            if (nodeLeft != nodeRight) {
+                lazy[node * 2] += dif;
+                lazy[node * 2 + 1] += dif;
+            }
+            return;
+        }
+        int mid = (nodeLeft+nodeRight)/2;
+        update(node * 2, l, r, nodeLeft, mid, dif);
+        update(node * 2 + 1, l, r, mid + 1, nodeRight, dif);
+        s[node] = merge(s[node * 2], s[node * 2 + 1]);
+    }
+    ll query(int node, int l, int r, int nodeLeft, int nodeRight) { //s should be vll
+        propagation(node, nodeLeft, nodeRight);
+        if (nodeRight < l || r < nodeLeft) return 0;
+        if (l <= nodeLeft && nodeRight <= r) {
+            return s[node];
+        }
+        int mid = (nodeLeft+nodeRight)/2;
+        return merge(query(node * 2, l, r, nodeLeft, mid), query(node * 2+1, l, r, mid+1, nodeRight));
+    }
+};
+
+struct DSU {
+    vi parent;
+    vi depth; //tree depth (maximum distance from root node)
+    vi d;
+    vi sz;
+    DSU(int n=1) {
+        parent = vi(n+1);
+        depth = vi(n+1, 0);
+        d = vi(n+1, 0);
+        sz = vi(n+1, 0);
+        iota(parent.begin()+1, parent.end(),1);
+        fill(sz.begin()+1, sz.end(), 1);
+    }
+    int getParent(int num) { 
+        if(num==parent[num]) return num;
+        int p = getParent(parent[num]);
+        // d[num] += d[parent[num]];
+        return parent[num] = p;
+    }
+    
+    //modify merge to get difference between a and b
+    void merge(int a, int b, ll w=0) { 
+        a = getParent(a);
+        b = getParent(b);
+        if(depth[a]<depth[b]) swap(a,b);
+        if(depth[a]==depth[b]) depth[a]+=1;
+        parent[b] = a;
+        sz[a] += sz[b];
+    }
+};
+
 void print(pii a) {
     cout << a.first << " " << a.second << endl;
+}
+void print(tiii a) {
+    auto [x,y,z] = a;
+    cout << x << " " << y << " " << z << endl;
+}
+template<typename T>
+void print(T *a, int start, int end) {
+    rep(i,start,end) cout << a[i] << " ";
+    cout << endl;
 }
 
 template <typename T>
@@ -48,11 +855,15 @@ void print(const vector<pii>& v) {
     }
     cout << endl;
 }
+void print(const vtiii& v) {
+    for(auto p : v) {
+        print(p);
+    }
+    cout << endl;
+}
 template <typename T>
 void print(const vector<T>& v) {
-    for(auto i : v) {
-        cout << i << " ";
-    }
+    for(auto i : v) cout << i << " ";
     cout << endl;
 }
 bool inRange(int y, int x) {
@@ -60,6 +871,21 @@ bool inRange(int y, int x) {
 }
 bool inRangeN(int y, int x) {
     return 1<=y && y<=N && 1<=x && x<=N;
+}
+vector<string> split(string input, char delimiter) {
+    vector<string> answer;
+    stringstream ss(input);
+    string temp;
+ 
+    while (getline(ss, temp, delimiter)) {
+        answer.push_back(temp);
+    }
+ 
+    return answer;
+}
+
+void yesno(bool a) {
+    cout << (a ? "YES" : "NO") << endl;
 }
 /*
 vector<int> combination;
@@ -83,90 +909,6 @@ void dfs(int idx, int cnt) { //implement with dfs(1, 0). N and K must be global 
 		combination.pop_back();
 	}
 }
-*/
-/* Basic Info
-A-Z is 26 char
-<regex> header file is used for find patterns
-*/
-
-//////////////////////////////////////////////////////////
-//////////////////////////////////////////////////////////
-
-
-// THIS IS SEGMENT TREE AND LAZY PROPOGATION
-/*
-
-#define MAX 100001
-ll v[MAX], s[4*MAX];
-//nodeLeft and nodeRight always has to be 1 and N as it is used in binary searching
-ll segment(int node, int nodeLeft, int nodeRight) { // use when s, v is available and segment tree is about sum
-    if (nodeLeft == nodeRight) {
-        return s[node] = v[nodeLeft];
-    }
-	int mid = (nodeLeft+nodeRight)/2;
-    return s[node] = segment(node * 2, nodeLeft, mid) + segment(node * 2 + 1, mid + 1, nodeRight);
-}
-void update(int node, int idx, int nodeLeft, int nodeRight, ll num) {
-    if (idx < nodeLeft || nodeRight < idx) return;
-    if (nodeLeft == nodeRight) {
-        s[node] = num;
-        return;
-    }
-    int mid = (nodeLeft+nodeRight)/2;
-    update(node * 2, idx, nodeLeft, mid, num);
-    update(node * 2 + 1, idx, mid + 1, nodeRight, num);
-
-    s[node] = s[node * 2] + s[node * 2 + 1];
-}
-ll query(int node, int l, int r, int nodeLeft, int nodeRight) { //l and r is the range.
-    if (nodeRight < l || r < nodeLeft) return 0;
-    if (l <= nodeLeft && nodeRight <= r) return s[node];
-	int mid = (nodeLeft+nodeRight)/2;
-    return query(node * 2, l, r, nodeLeft, mid) + query(node * 2 + 1, l, r, mid + 1, nodeRight);
-}
-*/
-
-//////////////////////////////////////////////////////////
-//////////////////////////////////////////////////////////
-/*
-//This is lazy propogation. Beginning starts with segment(..) used in above
-
-void propogation(int node, int l, int r) {
-    if (lazy[node]) {
-        s[node] += (r - l + 1) * lazy[node];
-        if (l != r) {
-            lazy[node * 2] += lazy[node];
-            lazy[node * 2 + 1] += lazy[node];
-        }
-        lazy[node] = 0;
-    }
-}
-void update(int node, int l, int r, int nodeLeft, int nodeRight, int dif) { //This is for lazy propogation
-    propogation(node, nodeLeft, nodeRight);
-    if (nodeRight < l || r < nodeLeft) return;
-    if (l <= nodeLeft && nodeRight <= r) {
-        s[node] += (r - l + 1) * dif;
-        if (nodeLeft != nodeRight) {
-            lazy[node * 2] += dif;
-            lazy[node * 2 + 1] += dif;
-        }
-        lazy[node] = 0;
-    }
-    int mid = nodeLeft + (nodeRight - nodeLeft) / 2;
-    update(node * 2, l, r, nodeLeft, mid, dif);
-    update(node * 2 + 1, l, r, mid + 1, nodeRight, dif);
-    s[node] = s[node * 2] + s[node * 2 + 1];
-}
-ll query(int node, int l, int r, int nodeLeft, int nodeRight) { //s should be vll
-    propogation(node, nodeLeft, nodeRight);
-    if (nodeRight < l || r < nodeLeft) return;
-    if (l <= nodeLeft && nodeRight <= r) {
-        return s[node];
-    }
-    int mid = nodeLeft + (nodeRight - nodeLeft) / 2;
-    return query(node * 2, l, r, nodeLeft, mid)+query(node * 2+1, l, r, mid+1, nodeRight);
-}
-
 */
 //////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////
@@ -267,7 +1009,10 @@ Node* update(Node* now, int nodeLeft, int nodeRight, int idx, int value) {
 int arr[MAX];
 int fenwick[MAX];
 
-void Update(int idx, int Value) { //For Making Fenwick Tree, for(int i=1~N) Update(i, arr[i]);
+//update function reflects the change of arr value, not the absolute value
+//if arr value, say arr[3] changes into 3 to 5, then update(3,2) should be used.
+//update(idx, c-arr[idx]); arr[idx] = c;
+void update(int idx, int Value) { //For Making Fenwick Tree, for(int i=1~N) Update(i, arr[i]);
     while (idx <= N) {
         fenwick[idx] = fenwick[idx] + Value;
         idx = idx + (idx & -idx);
@@ -284,7 +1029,41 @@ int sum(int idx) { //IF 3~5 sum is required it should be sum(5)-sum(2);
 }
 
 */
+//////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////
+/* 
 
+//two dimensional fenwick tree
+#define MAX 1026
+ll arr[MAX][MAX];
+ll fenwick[MAX][MAX];
+
+void update(int x, int y, ll value) {
+    while(x < N+1) {
+        int tempy = y;
+        while(tempy < N+1) {
+            fenwick[x][tempy] += value;
+            tempy += (tempy & -tempy);
+        }
+
+        x += (x & -x);
+    }
+}
+
+//sum(x,y) means sum of arr[1][1]~arr[x][y]
+ll sum(int x, int y) {
+    ll ret=0;
+    while(x>0) {
+        int tempy = y;
+        while(tempy > 0) {  
+            ret += fenwick[x][tempy];
+            tempy -= (tempy & -tempy);
+        }
+        x -= (x & -x);
+    }
+    return ret;
+}
+*/
 //////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////
 
@@ -296,7 +1075,7 @@ vvi SCC;
 int d[MAX];
 bool finished[MAX];
 vi edge[MAX];
-int id, SN; //mark sn[i]
+int id, SN=0; //mark sn[i]
 stack<int> s;
 int sn[MAX]; //sn[i] is SCC number to which it belongs to. If sn is big, then it is at the start of DAG. If small, it is at the end of DAG. If one wants to start from the beginning of DAG, start from the largest of sn.
 int SCCnode[MAX] {}; //if SCCbfs is needed...
@@ -413,7 +1192,7 @@ void sat2() { // (x1 or x2) and (Nx1 or x3) //Nx1->x2, Nx2->x1. x1->x3, Nx3->Nx1
 */
 //////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////
-// This is Dijkstra
+// This is Dijkstra, Time Complexity O((V+E)logV)
 /*
 #define MAX 100001
 vpii edge[MAX]; // first is idx, second is weight of edge
@@ -487,11 +1266,8 @@ void SPFA(int start) {
 // This is Floyd-Warshall
 /*
 #define MAX 501
-int dp[MAX][MAX]; //input should be done in dp table
+int dp[MAX][MAX] {}; //input should be done in dp table
 void floyd_warshall() {
-    rep(i, 1, N) {
-        rep(j, 1, N) if (dp[i][j] == 0) dp[i][j] = INF;
-    }
     rep(k, 1, N) {
         rep(i, 1, N) {
             rep(j, 1, N) {
@@ -504,26 +1280,9 @@ void floyd_warshall() {
 //////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////
 
-// This is Union Find
-/*
-#define MAX 10001
-int parent[MAX]; //parent[MAX] should be 1, 2, 3...
-int getParent(int num) {
-    if (parent[num] == num) return num;
-    return parent[num] = getParent(parent[num]);
-}
-void unionParent(int a, int b) {
-    a = getParent(a);
-    b = getParent(b);
-    if (a < b) parent[b] = a;
-    else parent[a] = b;
-}
-
-bool isSameParent(int a, int b) {
-    return getParent(a) == getParent(b);
-}
 //This is Kruskal with union find
 //When using Kruskal vector Edge is a little bit different
+/*
 class Edge {
 public:
     int node[2];
@@ -533,8 +1292,8 @@ public:
         node[1] = b;
         dis = _dis;
     }
-    bool operator < (const Edge& edge) {
-        return dis < edge.dis;
+    bool operator < (const Edge& edge) { 
+        return dis > edge.dis; //watch out for inequality sign
     }
 };
 vector<Edge> edge;
@@ -545,68 +1304,68 @@ void Kruskal() { //MST
         cin >> s >> e >> dis;
         edge.push_back(Edge(s, e, dis));
     }
+    DSU dsu(N);
     sort(all(edge));
-    for (int i = 1; i <= N; i++) { //setting nodes
-        parent[i] = i;
-    }
+    
     int sum = 0;
     for (int i = 0; i < edge.size() ; i++) {
         int nodeA = edge[i].node[0];
         int nodeB = edge[i].node[1];
         int dis = edge[i].dis;
-        if (!isSameParent(nodeA, nodeB)) {
-            unionParent(nodeA, nodeB);
+        if (dsu.getParent(nodeA)!=dsu.getParent(nodeB)) {
+            dsu.merge(nodeA, nodeB);
             sum+=dis;
         }
     }
     cout << "total distance required for executing kruskal is : " << sum << endl;
 }
 */
-
 //////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////
 //This is Network Flow with Dinic Algorithm. Time Complexity O(V^2 * E)
-//If the question is about Bipartite Matching, you should use Hopcroft-Karp Algorithm. Time Complexity O(E * sqrt(V))
 
+// 
 /*
 #define MAX 100 //MAX should be treated carefully since space complexity is limited. (256mb, 512mb)
 vector<int> edge[MAX];
 int f[MAX][MAX], c[MAX][MAX];
 int level[MAX], work[MAX];
-int start, target;
+int src, sink;
 int bias;
+
 void addEdge(int s, int e, int value=1) { //Decide whether graph is directed graph or undirected graph
     edge[s].pbk(e);
     edge[e].pbk(s);
     c[s][e] = value;
 }
-bool bfs() { // to create level and decide flow is no longer needed
+bool bfs() { // to create level graph and decide if flow is no longer needed
     queue<int> q;
-    q.push(start); //
+    q.push(src); //
     memset(level, -1, sizeof(level));
-    level[start] = 0;
+    level[src] = 0;
     while (!q.empty()) {
-        int now = q.front();
+        int cur = q.front();
         q.pop();
-        for (auto next : edge[now]) {
-            if (level[next] == -1 && c[now][next] - f[now][next] > 0) {
+        for (auto next : edge[cur]) {
+            if (level[next] == -1 && c[cur][next] - f[cur][next] > 0) {
                 q.push(next);
-                level[next] = level[now] + 1;
+                level[next] = level[cur] + 1;
             }
         }
     }
-    if (level[target] == -1) return false;
+    if (level[sink] == -1) return false;
     else return true;
 }
-int maxFlow(int now, int flow) { // dfs for dinic
-    if (now == target) return flow;
-    for (int& i = work[now]; i < edge[now].size(); i++) {
-        int next = edge[now][i];
-        if (level[next] == level[now] + 1 && c[now][next] - f[now][next] > 0) {
-            int ret = maxFlow(next, min(flow, c[now][next] - f[now][next]));
+int dfs(int cur, int flow) { //cur node has flow to offer to the next level
+    if (cur == sink) return flow;
+
+    for (int& i = work[cur]; i < edge[cur].size(); i++) {
+        int next = edge[cur][i];
+        if (level[next] == level[cur] + 1 && c[cur][next] - f[cur][next] > 0) {
+            int ret = dfs(next, min(flow, c[cur][next] - f[cur][next]));
             if (ret > 0) {
-                f[now][next] += ret;
-                f[next][now] -= ret;
+                f[cur][next] += ret;
+                f[next][cur] -= ret; //always remember to create reverse flow
                 return ret;
             }
         }
@@ -618,7 +1377,7 @@ int Network_Flow() {
     while (bfs()) {
         memset(work, 0, sizeof(work));
         while (true) {
-            int flow = maxFlow(start, INF); //INF varies from range to range
+            int flow = dfs(src, INF); //INF varies from range to range
             if (flow == 0) break;
             totalFlow += flow;
         }
@@ -750,15 +1509,15 @@ void MCMF() {
 
 //depending on input, the value ccw could be beyond INTEGER. Even long long could be dangerous. Watch carefully on input range
 /*
-struct Line {
-    pll p1, p2;
-    Line(int a, int b, int c, int d) {
-        p1 = {a,b};
-        p2 = {c,d};
-    }
+struct Point {
+    ll x, y;
+    Point(ll x, ll y) : x(x), y(y) {}
 };
-int CCW(pll A, pll B, pll C) { //A, B, C is in order
-    ll ccw = (B.first - A.first) * (C.second - A.second) - (C.first - A.first) * (B.second - A.second); //Cross product
+struct Line {
+    Point p1, p2;
+};
+ll CCW(Point A, Point B, Point C) { //A, B, C is in order
+    ll ccw = (B.x - A.x) * (C.y - A.y) - (C.x - A.x) * (B.y - A.y); //Cross product
     if(ccw>0) return 1;
     else if(ccw<0) return -1;
     else return 0;
@@ -769,12 +1528,47 @@ int LineInterSection(Line l1, Line l2) {
     ll l2_l1 = CCW(l2.p1, l2.p2, l1.p1) * CCW(l2.p1, l2.p2, l1.p2);
 	
 	if(l1_l2==0 && l2_l1==0) { //l1 and l2 is on the same line. If p1 <= p4 && p3 <= p2, the line meets.
-		if(l1.p1 > l1.p2) swap(l1.p1, l1.p2);
-		if(l2.p1 > l2.p2) swap(l2.p1, l2.p2);
+		if(l1.p1.x > l1.p2.x) swap(l1.p1, l1.p2);
+		if(l2.p1.x > l2.p2.x) swap(l2.p1, l2.p2);
 
-		return l1.p1 <= l2.p2 && l2.p1 <= l1.p2;
+		return l1.p1.x <= l2.p2.x && l2.p1.x <= l1.p2.x;
 	}
     return (l1_l2 <= 0) && (l2_l1 <= 0);
+}
+vector<Point> v;
+bool cmp(const Point& a, const Point& b) {
+    ll ccw = CCW(v[0], a, b);
+    if(ccw) return ccw>0;
+    if(a.y==b.y) return a.x < b.x;
+    return a.y < b.y;
+}
+stack<Point> s;
+//to find if X point exists within the convex polygon, do CCW(i,i+1,X point) and see if CCW value is the same for all
+void Convex_Hull() {
+    sort(all(v), [](Point a, Point b) {
+        if(a.y==b.y) return a.x<b.x;
+        return a.y<b.y;
+    });
+
+    sort(v.begin()+1, v.end(), cmp);
+
+    s.push(v[0]);
+    s.push(v[1]);
+
+    rep(i,2,N-1) {
+        while(s.size()>=2) {
+            auto t2 = s.top();
+            s.pop();
+            auto t1 = s.top();
+
+            if(CCW(t1, t2, v[i])>0) {
+                s.push(t2);
+                break;
+            }
+        }
+        s.push(v[i]);
+    }
+    cout << s.size();
 }
 */
 //////////////////////////////////////////////////////////
@@ -809,7 +1603,7 @@ void init() {
 void set_tree(int node, int pnode) {
     level[node] = level[pnode]+1;
     parent[node][0] = pnode;
- 
+
     for(int i=1;i<=maxLevel;i++) {
         int prev = parent[node][i-1];
         parent[node][i] = parent[prev][i-1];
@@ -877,6 +1671,7 @@ void LIS(vi& v) { //vector v's size is N
         //if only strictly increasing sequence is allowed, for example 10 20 40... then it should be lower_bound
         //https://www.acmicpc.net/problem/12738    this problem only allows strictly increasing order meaning one should use lower_bound
         //https://www.acmicpc.net/problem/2352     this problem also allows strictly increasing order but the element in array is never overlapped so it can use both lower_bound and upper_bound
+        //to create LDS (longest decreasing sequence), simply invert sign.
         
         auto iter = lower_bound(all(lis), cur);
         //if found, replace the value with cur. if not, cur is the highest value of lis
@@ -936,7 +1731,8 @@ string add(string a, string b) {
     return result;
 }
 */
-
+//////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////
 //rotate matrix by 90 degrees
 
 /*
@@ -949,7 +1745,8 @@ void rotate() { //rotating N*N matrix by 90 degrees clockwise
     memmove(arr, temp_arr, sizeof(arr));
 }
 */
-
+//////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////
 // Trie
 /*
 #define TRIENODE 26
@@ -1040,29 +1837,31 @@ struct Trie {
 };
 
 */
+//////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////
 /*
 //KMP
-vi makeTable(const string& pattern) {
+vi getPi(const string& pattern) {
     int patternSize = pattern.size();
 
-    vi table(patternSize);
+    vi pi(patternSize);
 
     int j = 0;
     for(int i=1;i<patternSize;i++) {
         while(j>0 && pattern[i] != pattern[j]) {
-            j = table[j-1];
+            j = pi[j-1];
         }
 
         if(pattern[i]==pattern[j]) {
             j+=1;
-            table[i] = j;
+            pi[i] = j;
         }
     }
-    return table;
+    return pi;
 }
 
 void KMP(const string& parent, const string& pattern) {
-    vi table = makeTable(pattern);
+    vi pi = getPi(pattern);
 
     int parentSize = parent.size();
     int patternSize = pattern.size();
@@ -1071,12 +1870,12 @@ void KMP(const string& parent, const string& pattern) {
 
     for(int i=0;i<parentSize;i++) {
         while(j>0 && parent[i] != pattern[j]) {
-            j = table[j-1];
+            j = pi[j-1];
         }
         if(parent[i] == pattern[j]) {
             if(j == patternSize-1) {
                 cout << i-patternSize + 2 << endl; //index starts from 1
-                j = table[j];
+                j = pi[j];
             }
             else {
                 j++;
@@ -1086,49 +1885,197 @@ void KMP(const string& parent, const string& pattern) {
 }
 
 */
-/*
-//extended euclidian
-// to find modular inverse
-// Find modular inverse of a in MOD N
-// if gcd(a,N)!=1, then modular inverse does not exist
-// s*a + t*N = 1
-// s is the modular inverse
-ll exEuclid(ll a, ll b, ll &s, ll &t) { //s*a + t*b = gcd(a,b)
-	if (b == 0) {
-		s = 1; t = 0;
-		return a;
-	}
-	ll gcd = exEuclid(b, a%b, s, t);
-	ll temp = t;
-	t = s - (a / b)*t;
-	s = temp;
-
-	if (s <= 0) {
-		s += b;
-		t -= a;
-	}
-	return gcd;
+//////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////
+/* 
+//https://kangminjun.tistory.com/entry/Manacher-%EC%95%8C%EA%B3%A0%EB%A6%AC%EC%A6%98
+//This is manachar's algorithm for finding biggest palindrome in substring
+#define MAX 200001
+int A[MAX] {}; //saves the sz of palindrome each side including i itself
+string preprocess(const string& str) { //to find even palindrome as well
+    string temp;
+    for(auto c : str) {
+        temp.pbk('#');
+        temp.pbk(c);
+    }
+    temp.pbk('#');
+    return temp;
+}
+void manacher(string str) {
+    int r = 0, p = 0; //p is the value that maximize j+A[j]
+    str = preprocess(str);
+    int sz = str.size();
+    
+    for (int i = 0; i < sz; i++) {
+        if (i <= r) {
+            A[i] = min(A[2 * p - i], r - i);
+        }
+        while (i-A[i]-1>=0 && i+A[i]+1<sz && str[i-A[i]-1]==str[i+A[i]+1]) {
+            A[i]++;
+        }
+        if (r < i + A[i]) {
+            r = i + A[i];
+            p = i;
+        }
+    }
 }
 */
-/*
-*
-*
-*
-*
-*
-*
-*
-*
-*
-*
-*
-*
-*
+//////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////
+/* 	Articulation Points
+#define MAX 10001
+vi edge[MAX];
+int visited[MAX] {};
+int num=1;
+bool isCut[MAX] {};
+//for 1~N, if visited[i]==0, dfs(i,1);
+int dfs(int cur, bool isRoot) {
+    visited[cur] = num;
+    num++;
+    int ret = visited[cur];
+
+    int child = 0;
+    for(auto next : edge[cur]) {
+        if(visited[next]) {
+            ret = min(ret, visited[next]);
+            continue;
+        }
+        child++;
+        int prev = dfs(next, 0);
+
+        if(isRoot==0 && prev>=visited[cur]) isCut[cur] = 1;
+        
+        ret = min(ret, prev);
+    }
+    if(isRoot && child>=2) isCut[cur] = 1;
+    return ret;
+}
+*/
+//////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////
+/* 	Articulation Bridges
+#define MAX 100001
+int visited[MAX] {};
+vi edge[MAX];
+vpii isCut;
+int num = 1;
+//for 1~N if visited[i]==0, dfs(i,-1)
+int dfs(int cur, int parent) {
+    visited[cur] = num;
+    num++;
+    int ret = visited[cur];
+
+    for(auto next : edge[cur]) {
+        if(next==parent) continue;
+
+        if(visited[next]!=0) {
+            ret = min(ret, visited[next]);
+            continue;
+        }
+
+        int prev = dfs(next, cur);
+
+        if(prev>visited[cur]) {
+            isCut.pbk({min(next, cur), max(next, cur)});
+        }
+        ret = min(ret, prev);
+    }
+    return ret;
+}
+*/
+//////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////
+/* 
+//typical bipartite problems can be solved with dinic as it will work in O(E * √V)
+//but memory will be N*M whereas Hopcroft_Karp will use max(N,M) + E
+//so use dinic when N,M <=1000 and Hopcroft_Karp when N,M>1000
+//This is Hopcroft_Karp Algorithm
+#define MAX 10001
+vi edge[MAX];
+bool used[MAX];
+//matched with A/B group. Thus B[A[i]] == i
+//set initial value of A, B to -1
+int a[MAX] {};
+int b[MAX] {};
+//dist does not need to be initialized as it is set in bfs
+int dist[MAX] {}; //distance between non matched vertex in A
+void bfs() { //set dist array
+	qi q; //push only A array not B
+	
+	for(int i=1;i<=N;i++) {
+		if(used[i]==0) {
+			dist[i]=0;
+			q.push(i);
+		}
+		else {
+			dist[i]=INF;
+		}
+	}
+
+	while(!q.empty()) {
+		int cur = q.front();
+		q.pop();
+
+		for(auto next : edge[cur]) {
+			if(b[next]!=-1 && dist[b[next]]==INF) {
+				dist[b[next]] = dist[cur] + 1;
+				q.push(b[next]);
+			}
+		}
+	}
+}
+
+bool dfs(int cur) {
+	for(auto next : edge[cur]) {
+		if(b[next]==-1 || (dist[b[next]] == dist[cur]+1 && dfs(b[next]))) {
+			used[cur] = 1;
+			a[cur] = next;
+			b[next] = cur;
+			return true;
+		}
+	}
+	return false;
+}
+void Hopcroft_Karp() {
+	int totalFlow = 0;
+	while(true) {
+		bfs();
+
+		int flow =0;
+		for(int i=1;i<=N;i++) {
+			if(used[i]==0 && dfs(i)) flow++;
+		}
+		if(flow==0) break;
+		totalFlow += flow;
+	}
+	cout << totalFlow << endl;
+}
+*/
+//////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////
+/* 
+#define MAX 1001
+vi edge[MAX];
+bool done[MAX] {};
+int b[MAX] {};
+//for 1~N memset(done, done+MAX, 0), if(dfs(i)) cnt++;
+bool dfs(int cur) {
+    for(auto next : edge[cur]) {
+        if(done[next]) continue;
+        done[next] = 1;
+        
+        if(b[next]==0 || dfs(b[next])) {
+            b[next] = cur;
+            return true;
+        }
+    }
+    return false;
+}
 */
 void Solve() {
 }
-int main() {
-    ios::sync_with_stdio(false);
+int32_t main() {
+	ios::sync_with_stdio(false);
     cin.tie(NULL);
     cout.tie(NULL);
     Solve();
