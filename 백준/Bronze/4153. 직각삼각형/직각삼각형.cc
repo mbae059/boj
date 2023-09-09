@@ -2076,15 +2076,9 @@ bool dfs(int cur) {
 */
 void Solve() {
     while(true) {
-        vi v;
-        rep(i,1,3) {
-            int x; cin >> x;
-            v.pbk(x);
-        }
-        sort(all(v));
-        if(v[2]==0) return;
-        if(v[0]*v[0] + v[1]*v[1] == v[2]*v[2]) cout << "right" << endl;
-        else cout << "wrong" << endl;
+        int a,b,c;cin >> a >> b >> c;
+        if(a==b && b==c && a==0) return;
+        cout << ((a+b-c)%2==0 ? "right" : "wrong") << endl;
     }
 }
 int32_t main() {
