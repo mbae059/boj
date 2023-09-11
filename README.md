@@ -80,5 +80,4 @@ The template code i use for PS is template_code.cpp.
 10. LIS
 11. Trie, aho-corasick
 12. KMP
-13. Extented Euclidian
 14. ACL mod int
