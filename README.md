@@ -36,8 +36,6 @@ int a, b, c;
 tie(a,b,c) = q.front();
 ```
 
-As you can see, structured binding is better.
-
 # Range-based for loop
 
 ```c++
