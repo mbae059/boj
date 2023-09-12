@@ -2090,7 +2090,6 @@ void Solve() {
     vi k(M+1);
     mint::set_mod(mod);
     mint answer = 0;
-    int mx = 500000;
     vi gcompress;
     rep(i,1,M) {
         cin >> K >> N;
@@ -2107,6 +2106,7 @@ void Solve() {
     rep(i,0,gcompress.size()-1) {
         gidx[gcompress[i]] = i+1;
     }
+    int mx = gcompress.size();
     Segtree<int> segtree(mx);
     for(int i=1;i<=M;i++) {
         mint sum1 = 0;
