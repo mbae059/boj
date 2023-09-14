@@ -562,6 +562,45 @@ using is_dynamic_modint_t = std::enable_if_t<is_dynamic_modint<T>::value>;
 
 }  // namespace atcoder
 
+namespace atcoder {
+
+template <class T> struct fenwick_tree {
+    using U = internal::to_unsigned_t<T>;
+
+  public:
+    fenwick_tree() : _n(0) {}
+    explicit fenwick_tree(int n) : _n(n), data(n) {}
+
+    void add(int p, T x) {
+        assert(0 <= p && p < _n);
+        p++;
+        while (p <= _n) {
+            data[p - 1] += U(x);
+            p += p & -p;
+        }
+    }
+
+    T sum(int l, int r) {
+        assert(0 <= l && l <= r && r <= _n);
+        return sum(r) - sum(l);
+    }
+
+  private:
+    int _n;
+    std::vector<U> data;
+
+    U sum(int r) {
+        U s = 0;
+        while (r > 0) {
+            s += data[r - 1];
+            r -= r & -r;
+        }
+        return s;
+    }
+};
+
+}  // namespace atcoder
+
 using namespace atcoder;
 #pragma GCC optimize("O3,unroll-loops")
 #pragma GCC target("avx2,bmi,bmi2,lzcnt,popcnt")
@@ -569,6 +608,7 @@ using namespace atcoder;
 #define INF 987654321
 #define p_q priority_queue
 #define pbk push_back
+#define double long double
 #define rep(i, a, b) for (int i=a; i<=b; i++) 
 #define all(v) (v).begin(), (v).end()
 
@@ -687,10 +727,10 @@ struct Matrix {
             }
         }
     }
-    void print(int N, int M) {
-        for(int i=1;i<=N;i++) {
-            for(int j=1;j<=M;j++) {
-                cout << m[i][j] << " ";
+    void print(int n, int m) {
+        for(int i=1;i<=n;i++) {
+            for(int j=1;j<=m;j++) {
+                cout << this->m[i][j] << " ";
             }
             cout << endl;
         }
@@ -872,7 +912,7 @@ bool inRange(int y, int x) {
 bool inRangeN(int y, int x) {
     return 1<=y && y<=N && 1<=x && x<=N;
 }
-vector<string> split(string input, char delimiter) {
+vector<string> split(string input, char delimiter=' ') {
     vector<string> answer;
     stringstream ss(input);
     string temp;
@@ -887,6 +927,14 @@ vector<string> split(string input, char delimiter) {
 void yesno(bool a) {
     cout << (a ? "YES" : "NO") << endl;
 }
+
+void chmin(int& x, int y) {
+    x = min(x,y);
+}
+void chmax(int& x, int y) {
+    x = max(x,y);
+}
+
 /*
 vector<int> combination;
 bool visited[1005];
@@ -997,37 +1045,6 @@ Node* update(Node* now, int nodeLeft, int nodeRight, int idx, int value) {
     leaf->v = leaf->l->v + leaf->r->v;
     return leaf;
 }
-*/
-//////////////////////////////////////////////////////////
-//////////////////////////////////////////////////////////
-
-/*
-
-//THIS IS FENWICK_TREE
-//Fenwic_tree starts from index 1. 
-#define MAX 500001
-int arr[MAX];
-int fenwick[MAX];
-
-//update function reflects the change of arr value, not the absolute value
-//if arr value, say arr[3] changes into 3 to 5, then update(3,2) should be used.
-//update(idx, c-arr[idx]); arr[idx] = c;
-void update(int idx, int Value) { //For Making Fenwick Tree, for(int i=1~N) Update(i, arr[i]);
-    while (idx <= N) {
-        fenwick[idx] = fenwick[idx] + Value;
-        idx = idx + (idx & -idx);
-    }
-}
-
-int sum(int idx) { //IF 3~5 sum is required it should be sum(5)-sum(2);
-    int result = 0; //BE CAREFUL ON RANGE (Long Long could be used)
-    while (idx > 0) {
-        result += fenwick[idx];
-        idx = idx - (idx & -idx);
-    }
-    return result;
-}
-
 */
 //////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////
@@ -1730,21 +1747,7 @@ string add(string a, string b) {
 
     return result;
 }
-*/
-//////////////////////////////////////////////////////////
-//////////////////////////////////////////////////////////
-//rotate matrix by 90 degrees
 
-/*
-void rotate() { //rotating N*N matrix by 90 degrees clockwise
-    for(int i=0; i<N; i++) {
-        for(int j=0; j<N; j++) {
-            temp_arr[i][j] = arr[N - j -1][i]; //N-j+1 if 1~N
-        }
-    }
-    memmove(arr, temp_arr, sizeof(arr));
-}
-*/
 //////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////
 // Trie
@@ -1920,69 +1923,7 @@ void manacher(string str) {
     }
 }
 */
-//////////////////////////////////////////////////////////
-//////////////////////////////////////////////////////////
-/* 	Articulation Points
-#define MAX 10001
-vi edge[MAX];
-int visited[MAX] {};
-int num=1;
-bool isCut[MAX] {};
-//for 1~N, if visited[i]==0, dfs(i,1);
-int dfs(int cur, bool isRoot) {
-    visited[cur] = num;
-    num++;
-    int ret = visited[cur];
 
-    int child = 0;
-    for(auto next : edge[cur]) {
-        if(visited[next]) {
-            ret = min(ret, visited[next]);
-            continue;
-        }
-        child++;
-        int prev = dfs(next, 0);
-
-        if(isRoot==0 && prev>=visited[cur]) isCut[cur] = 1;
-        
-        ret = min(ret, prev);
-    }
-    if(isRoot && child>=2) isCut[cur] = 1;
-    return ret;
-}
-*/
-//////////////////////////////////////////////////////////
-//////////////////////////////////////////////////////////
-/* 	Articulation Bridges
-#define MAX 100001
-int visited[MAX] {};
-vi edge[MAX];
-vpii isCut;
-int num = 1;
-//for 1~N if visited[i]==0, dfs(i,-1)
-int dfs(int cur, int parent) {
-    visited[cur] = num;
-    num++;
-    int ret = visited[cur];
-
-    for(auto next : edge[cur]) {
-        if(next==parent) continue;
-
-        if(visited[next]!=0) {
-            ret = min(ret, visited[next]);
-            continue;
-        }
-
-        int prev = dfs(next, cur);
-
-        if(prev>visited[cur]) {
-            isCut.pbk({min(next, cur), max(next, cur)});
-        }
-        ret = min(ret, prev);
-    }
-    return ret;
-}
-*/
 //////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////
 /* 
@@ -2054,6 +1995,8 @@ void Hopcroft_Karp() {
 //////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////
 /* 
+//bipartite matching 
+
 #define MAX 1001
 vi edge[MAX];
 bool done[MAX] {};
