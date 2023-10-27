@@ -1959,8 +1959,8 @@ void Solve() {
         cout << "50.00";
         return;
     }
-    double answer = (double)ph / (ph + pg) * 100;
-    cout << fixed << setprecision(2) << answer;
+    float answer = (float)ph / (ph + pg) * 100;
+    printf("%.2f", answer);
 }
 int32_t main() {
     ios::sync_with_stdio(false);
