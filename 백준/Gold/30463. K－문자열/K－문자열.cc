@@ -1947,38 +1947,23 @@ bool dfs(int cur) {
 */
 void Solve() {
     cin >> N >> K;
-    unordered_map<bitset<10>, int> mp;
+    vi v(1<<10);
     rep(i,1,N) {
         string str; cin >> str;
-        bool a[11] {};
-        for(auto& c : str) {
-            a[c-'0']=1;
-        }
         int val = 0;
-        for(int i=0;i<10;i++) {
-            if(a[i]) val+=1;
-            val<<=1;
+        for(auto& c : str) {
+            val |= 1<<(c-'0');
         }
-        val>>=1;
-        bitset<10> bs(val);
-        mp[bs]+=1;
-    }
-    vector<pair<bitset<10>, int>> v;
-    for(auto [a,b] : mp) {
-        v.pbk({a,b});
+        v[val]++;
     }
     int answer=0;
     for(int i=0;i<v.size();i++) {
-        auto [bs1, cnt1] = v[i];
-        if(bs1.count()==K) answer += cnt1 * (cnt1-1) / 2;
-        for(int j=i+1;j<v.size();j++) {
-            auto [bs2, cnt2] = v[j];
-
-            auto res = (bs1 | bs2);
-            if(res.count()==K) answer += cnt1 * cnt2;
+        for(int j=i;j<v.size();j++) {
+            if(__builtin_popcount(i|j)!=K) continue;
+            if(i==j) answer += v[i] * (v[j]-1) / 2;
+            else answer += v[i] * v[j];
         }
     }
-    
     cout << answer;
 }
 int32_t main() {
