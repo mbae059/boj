@@ -1959,42 +1959,38 @@ void Solve() {
         }
         yesno(1);
     }
-    vi edge[888888];
-    int idx = N;
+    vpii edge[N+1];
     for(auto [a,b,c] : v) {
         if(c%(K/2)) yesno(0);
-
         if(c%K==0) {
-            idx++;
-            edge[a].pbk(idx);
-            edge[idx].pbk(a);
-            edge[b].pbk(idx);
-            edge[idx].pbk(b);
+            edge[a].pbk({b,0});
+            edge[b].pbk({a,0});
         }
         else {
-            edge[a].pbk(b);
-            edge[b].pbk(a);
+            edge[a].pbk({b,1});
+            edge[b].pbk({a,1});
         }
     }
-    int visited[idx+1] {};
-    memset(visited,-1,sizeof(visited));
+    int d[N+1] {};
+    memset(d,-1,sizeof(d));
+    rep(i,1,N) {
+        if(d[i]!=-1) continue;
 
-    rep(i,1,idx) {
-        if(visited[i]!=-1) continue;
-        
+        d[i] = 0;
         qi q;
         q.push(i);
-        visited[i] = 1;
         while(!q.empty()) {
             int cur = q.front();
             q.pop();
-            for(auto next : edge[cur]) {
-                if(visited[next]!=-1) {
-                    if(visited[next]+visited[cur]!=1) yesno(0);
+            for(auto [next, parity] : edge[cur]) {
+                if(d[next]!=-1) {
+                    if(d[cur]^d[next]^parity) yesno(0);
                     continue;
                 }
-                visited[next] = !visited[cur];
-                q.push(next);
+                else {
+                    d[next] = parity^d[cur];
+                    q.push(next);
+                }
             }
         }
     }
