@@ -1969,14 +1969,11 @@ bool dfs(int cur) {
     return false;
 }
 */
-void print(const si& s) {
-    for(auto i : s) cout << i << " ";
-    cout << endl;
-}
 void Solve() {
     cin >> N >> P;
     int m[N+1] {};
     rep(i,1,N) cin >> m[i];
+
 
     vi v[N+1];
     si s[P+1];
@@ -1985,44 +1982,36 @@ void Solve() {
 
     rep(i,1,P) {
         int sz; cin >> sz;
+        //입력받음
         while(sz--) {
             int x; cin >> x;
             s[i].insert(x);
             v[x].pbk(i);
         }
         if(s[i].size()==1) {
-            int cur = *s[i].begin();
+            int cur = *(s[i].begin());
             m[cur]-=1;
             if(m[cur]==0) q.push(cur);
         }
     }
     while(!q.empty()) {
-        qi tq;
-        while(!q.empty()) {
-            int cur = q.front();
-            tq.push(cur);
-            q.pop();
-            answer.pbk(cur);
-            for(auto i : v[cur]) {
-                s[i].erase(cur);
+        int cur = q.front();
+        q.pop();
+        answer.pbk(cur);
+        for(auto i : v[cur]) {
+            s[i].erase(cur);
+        }
+        for(auto i : v[cur]) {
+            if(s[i].size()==1) {
+                int next = *(s[i].begin());
+                m[next]-=1;
+                if(m[next]==0) q.push(next);
             }
         }
-        si ts;
-        while(!tq.empty()) {
-            int cur = tq.front();
-            tq.pop();
-            for(auto i : v[cur]) {
-                if(s[i].size()==1) {
-                    int next = *s[i].begin();
-                    m[next]-=1;
-                    if(m[next]==0) ts.insert(next);
-                }
-            }
-        }
-        for(auto i : ts) q.push(i);
     }
-    // print(answer);
+    
     reverse(all(answer));
+    assert(answer.size()<=N);
     if(answer.size()==N) print(answer);
     else cout << -1;
 }
