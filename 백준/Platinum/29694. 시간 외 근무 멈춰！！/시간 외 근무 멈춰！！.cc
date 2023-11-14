@@ -2019,15 +2019,18 @@ void getAnswer() {
         int cnt1=0;
         int cnt2=M/B;
         rep(i,1,l) {
-            if(isWeekend(i) && cnt2) {
-                cnt2--;
-                cnt1++;
+            if(isWeekend(i)) {
+                if(cnt2) {
+                    cnt2--;
+                    cnt1++;
+                }
             }
             else cnt1+=2;
             cnt1 -= work[i];
             if(cnt1<0) no();
         }
-        answer = M/B;
+        if(cnt2==0) answer = M/B;
+        else answer = -1;
     }
     else if(A!=0 && B==0 && M==0) { //주말만 함
         int cnt1=0;
@@ -2067,6 +2070,7 @@ void getAnswer() {
                 cnt1 = 0;
             }
         }
+        if(cnt!=0) answer = -1;
     }
     else if(A!=0 && B!=0 && M==0) { //반드시 시간외근무 ㄴㄴ
         int cnt = 0;
@@ -2078,31 +2082,33 @@ void getAnswer() {
     }
     else if(A!=0 && B!=0 && M!=0) {
         auto v = getPair(A,B,M);
-        int mx = 1e9;
-        [&] () {
-            for(auto [a, b] : v) { //use 
-                int cnt = a;
-                int cnt1 = 0;
-                int cnt2 = b;
+        answer = 1e9;
+        for(auto [a, b] : v) { //use 
+            int cnt = a;
+            int cnt1 = 0;
+            int cnt2 = b;
+            [&] () {
                 rep(i,1,l) {
-                    if(isWeekend(i) && cnt2) {
-                        cnt1++;
-                        cnt2--;
+                    if(isWeekend(i)) {
+                        if(cnt2) {
+                            cnt1++;
+                            cnt2--;
+                        }
                     }
                     else {
                         if(cnt) {
                             cnt--;
-                            cnt1+=2;
+                            cnt1++;
                         }
-                        else cnt1++;
+                        cnt1++;
                     }
                     cnt1 -= work[i];
                     if(cnt1<0) return;
                 }
-                chmin(mx, b);
-            }
-        } ();
-        if(mx!=1e9) answer=mx;
+                if(cnt==0 && cnt2==0) chmin(answer, b);
+            } ();
+        }
+        if(answer==1e9) answer = -1;
     }
     cout << answer;
 }
