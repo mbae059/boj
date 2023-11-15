@@ -651,7 +651,7 @@ void addEdge(int s, int e, int value=1) { //Decide whether graph is directed gra
 }
 bool bfs() { // to create level graph and decide if flow is no longer needed
     queue<int> q;
-    q.push(start); //
+    q.push(start);
     memset(level, -1, sizeof(level));
     level[start] = 0;
     while (!q.empty()) {
@@ -697,16 +697,17 @@ int Network_Flow() {
     return totalFlow;
 }
 int v[10001] {};
+vi a[8];
 
 void Solve() {
 	cin >> N;
-	rep(i,1,N) edge[i].clear();
+	rep(i,1,100) edge[i].clear();
 	memset(f, 0, sizeof(f));
 	memset(c, 0, sizeof(c));
 	memset(level, 0, sizeof(level));
 	memset(work, 0, sizeof(work));
-
-	fill(v, v+N+1, 0);
+	memset(v, 0, sizeof(v));
+	rep(i,0,7) a[i].clear();
 	start = 11;
 	bias = 7;
 	target = 12;
@@ -718,7 +719,7 @@ void Solve() {
         int S; cin >> S;
         while(S--) {
             int x; cin >> x;
-			v[x] |= (1<<(i-1));
+			v[x] += (1<<(i-1));
         }
     }
 	addEdge(1, bias+1, INF);
@@ -734,7 +735,6 @@ void Solve() {
 	addEdge(7, bias+2, INF);
 	addEdge(7, bias+3, INF);
 
-	vi a[8] {};
 	rep(i,1,N) {
 		a[v[i]].pbk(i);
 	}
@@ -745,9 +745,10 @@ void Solve() {
 
 	rep(i,0,7) {
 		rep(j,8,10) {
-			while(f[i][j]) {
+			assert(f[i][j]>=0);
+			while(f[i][j]--) {
+				assert(!a[i].empty());
 				cout << a[i].back() << " " << char(j-8+'A') << endl;
-				f[i][j]--;
 				a[i].pop_back();
 			}
 		}
