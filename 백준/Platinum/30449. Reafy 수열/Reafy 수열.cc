@@ -581,7 +581,7 @@ namespace atcoder {
             }
         }
 
-        T sum(int l, int r) {
+        T sum(int l, int r) { //returns a[l]+...+a[r-1]
             assert(0 <= l && l <= r && r <= _n);
             return sum(r) - sum(l);
         }
@@ -604,7 +604,6 @@ namespace atcoder {
 
 using namespace atcoder;
 #define endl '\n'
-#define INF 987654321
 #define p_q priority_queue
 #define pbk push_back
 #define double long double
@@ -811,7 +810,7 @@ struct lazySegtree {
             lazy[node] = 0;
         }
     }
-    void update(int node, int l, int r, int nodeLeft, int nodeRight, int dif) { //This is for lazy propagation
+    void update(int node, int nodeLeft, int nodeRight, int l, int r, int dif=1) { //This is for lazy propagation
         propagation(node, nodeLeft, nodeRight);
         if (nodeRight < l || r < nodeLeft) return;
         if (l <= nodeLeft && nodeRight <= r) {
@@ -823,18 +822,18 @@ struct lazySegtree {
             return;
         }
         int mid = (nodeLeft + nodeRight) / 2;
-        update(node * 2, l, r, nodeLeft, mid, dif);
-        update(node * 2 + 1, l, r, mid + 1, nodeRight, dif);
+        update(node * 2, nodeLeft, mid, l, r, dif);
+        update(node * 2 + 1, mid+1, nodeRight, l, r, dif);
         s[node] = merge(s[node * 2], s[node * 2 + 1]);
     }
-    ll query(int node, int l, int r, int nodeLeft, int nodeRight) { //s should be vll
+    ll query(int node, int nodeLeft, int nodeRight, int l, int r) { //s should be vll
         propagation(node, nodeLeft, nodeRight);
         if (nodeRight < l || r < nodeLeft) return 0;
         if (l <= nodeLeft && nodeRight <= r) {
             return s[node];
         }
         int mid = (nodeLeft + nodeRight) / 2;
-        return merge(query(node * 2, l, r, nodeLeft, mid), query(node * 2 + 1, l, r, mid + 1, nodeRight));
+        return merge(query(node * 2, nodeLeft, mid, l, r), query(node * 2 + 1, mid+1, nodeRight, l, r));
     }
 };
 
@@ -843,6 +842,7 @@ struct DSU {
     vi depth; //tree depth (maximum distance from root node)
     vi d;
     vi sz;
+    stack<tiii> rb; //rollback
     DSU(int n = 1) {
         parent = vi(n + 1);
         depth = vi(n + 1, 0);
@@ -855,17 +855,41 @@ struct DSU {
         if (num == parent[num]) return num;
         int p = getParent(parent[num]);
         // d[num] += d[parent[num]];
-        return parent[num] = p;
+        return parent[num] = p; //path compression
     }
 
     //modify merge to get difference between a and b
-    void merge(int a, int b, ll w = 0) {
+    void merge(int a, int b, ll w = 0) { //merge to b
+        // int pa = getParent(a);
+        // int pb = getParent(b);
+
+        // d[pb] = d[a] + w - d[b];
+        // parent[pb] = pa;
+
         a = getParent(a);
         b = getParent(b);
-        if (depth[a] < depth[b]) swap(a, b);
-        if (depth[a] == depth[b]) depth[a] += 1;
+        
+        if(d[a]<d[b]) swap(a,b);
+        
+        bool flag = 0;
+        if(d[a]==d[b]) {
+            d[a]++;
+            flag=1;
+        }
         parent[b] = a;
+        rb.push({a,b,flag});
         sz[a] += sz[b];
+    }
+    bool isSameParent(int a, int b) {
+        return getParent(a)==getParent(b);
+    }
+    void rollback() {
+        if(rb.empty()) return;
+        auto [u,v,flag] = rb.top(); //u is root node and v is attached to u
+        rb.pop();
+        if(flag) d[u]--;
+        parent[v] = v;
+        sz[u] -= sz[v];
     }
 };
 
@@ -969,95 +993,7 @@ void dfs(int idx, int cnt) { //implement with dfs(1, 0). N and K must be global 
 //////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////
 
-//This is persistent segment tree (PST)
-
 /*
-struct Node {
-    Node *l, *r;
-    ll v;
-
-    Node() {
-        l = r = NULL;
-        v = 0;
-    }
-};
-
-#define MAX 1000
-//When using MAX, root MAX and arr MAX is DIFFERENT!!!! KEEP IN MIND!!!
-Node* root[MAX];
-int arr[MAX];
-
-void build(Node *node, int nodeLeft, int nodeRight) {
-    if(nodeLeft == nodeRight) {
-        node->v = arr[nodeLeft];
-        return;
-    }
-    int m = nodeLeft + (nodeRight-nodeLeft)/2;
-
-    node->l = new Node();
-    node->r = new Node();
-
-    build(node->l, nodeLeft, m);
-    build(node->r, m+1, nodeRight);
-
-    node->v = node->l->v + node->r->v;
-}
-
-//doesn't update origin segment tree but updates new segment tree and connects it into a existing tree
-void update(Node* prev, Node* now, int nodeLeft, int nodeRight, int idx, int value) {
-    if(nodeLeft == nodeRight) {
-        now->v = value;
-        return;
-    }
-
-    int middle = nodeLeft + (nodeRight-nodeLeft)/2;
-
-    if(idx <= middle) { //update left node
-        now->l = new Node(); now->r = prev->r;
-        update(prev->l, now->l, nodeLeft, middle, idx, value);
-    }
-    else { //update right node
-        now->l = prev->l; now->r = new Node();
-        update(prev->r, now->r, middle+1, nodeRight, idx, value);
-    }
-    now->v = now->l->v + now->r->v;
-}
-
-ll query(Node *node, int nodeLeft, int nodeRight, int l, int r) { //want to know the addition of l~r
-    if(nodeRight < l || r < nodeLeft) return 0;
-    if(l <= nodeLeft && nodeRight <= r) return node->v;
-
-    int middle = nodeLeft + (nodeRight-nodeLeft)/2;
-
-    return query(node->l, nodeLeft, middle, l, r) + query(node->r, middle+1, nodeRight, l, r);
-}
-
-*/
-
-/* could help if above update isn't appliable
-Node* update(Node* now, int nodeLeft, int nodeRight, int idx, int value) {
-    if (nodeRight < idx || idx < nodeLeft) return now;
-
-    if (nodeLeft == nodeRight) {
-        Node* leaf = new Node();
-        leaf->v = now->v + value;
-        return leaf;
-    }
-
-    int middle = nodeLeft + (nodeRight - nodeLeft) / 2;
-    Node* leaf = new Node();
-    leaf -> l = update(now->l, nodeLeft, middle, idx, value);
-    leaf -> r = update(now->r, middle + 1, nodeRight, idx, value);
-
-
-    leaf->v = leaf->l->v + leaf->r->v;
-    return leaf;
-}
-*/
-//////////////////////////////////////////////////////////
-//////////////////////////////////////////////////////////
-/*
-
 //two dimensional fenwick tree
 #define MAX 1026
 ll arr[MAX][MAX];
@@ -1224,7 +1160,7 @@ vpii edge[MAX];
 int d[MAX];
 int cycle[MAX] {};
 void SPFA(int start) {
-    fill(d+1, d+1+N, INF);
+    fill(d+1, d+1+N, 1e9);
     qi q;
     d[start] =0;
     q.push(start);
@@ -1324,7 +1260,7 @@ int Network_Flow() {
     while (bfs()) {
         memset(work, 0, sizeof(work));
         while (true) {
-            int flow = dfs(src, INF); //INF varies from range to range
+            int flow = dfs(src, 1e9); //INF varies from range to range
             if (flow == 0) break;
             totalFlow += flow;
         }
@@ -1364,7 +1300,7 @@ int maxFlow(int start, int end) {
 
         if(d[end]==-1) break;
 
-        int flow = INF;
+        int flow = 1e9;
 
         for(int i=end;i!=start;i=d[i]) {
             flow = min(flow, c[d[i]][i] - f[d[i]][i]);
@@ -1407,7 +1343,7 @@ void MCMF() {
         bool inQ[MAX] {};
 
         fill(prev, prev+MAX, -1);
-        fill(dist, dist+MAX, INF);
+        fill(dist, dist+MAX, 1e9);
 
         qi q;
         q.push(S);
@@ -1433,7 +1369,7 @@ void MCMF() {
 
         if(prev[T]==-1) break;
 
-        int flow = INF;
+        int flow = 1e9;
         for(int i = T;i!=S;i=prev[i]) {
             flow = min(flow, c[prev[i]][i]-f[prev[i]][i]);
         }
@@ -1879,7 +1815,7 @@ void bfs() { //set dist array
             q.push(i);
         }
         else {
-            dist[i]=INF;
+            dist[i]=1e9;
         }
     }
 
@@ -1888,7 +1824,7 @@ void bfs() { //set dist array
         q.pop();
 
         for(auto next : edge[cur]) {
-            if(b[next]!=-1 && dist[b[next]]==INF) {
+            if(b[next]!=-1 && dist[b[next]]==1e9) {
                 dist[b[next]] = dist[cur] + 1;
                 q.push(b[next]);
             }
@@ -1945,46 +1881,23 @@ bool dfs(int cur) {
     return false;
 }
 */
-bool dp[5001][5001]{};
 
-void eliminate(int y, int x) {
-    int ny = y * 2;
-    int nx = x * 2;
-
-    while (inRangeN(ny, nx)) {
-        dp[ny][nx] = 0;
-        ny += y;
-        nx += x;
-    }
+deque<pii> dq;
+void dfs(int a, int b, int c, int d) {
+    int p = a+c;
+    int q = b+d;
+    if(q>N) return;
+    dfs(a,b,p,q);
+    dq.pbk({p,q});
+    dfs(p,q,c,d);
 }
 void Solve() {
     cin >> N >> K;
-    rep(i, 1, N) { //N*N/2
-        for (int j = 1;j < i;j++) {
-            dp[i][j] = 1;
-        }
-    }
-    vpii v;
-    v.pbk({ 1,0 });
-    rep(i, 2, N) {
-        for (int j = 1;j <= i / 2;j++) {
-            if (dp[i][j] == 0) continue;
-            v.pbk({ i,j });
-            eliminate(i, j);
-        }
-    }
-    sort(all(v), [&](pii l, pii r) {
-        auto [a1, b1] = l;
-        auto [a2, b2] = r;
-        return b1 * a2 < a1 * b2;
-        });
-    int sz = v.size();
-    for (int i = sz - 2;i >= 0;i--) {
-        auto [a, b] = v[i];
-        v.pbk({ a, a - b });
-    }
-    auto [a, b] = v[K - 1];
-    cout << b << " " << a;
+
+    dfs(0,1,1,1);
+    dq.push_front({0,1});
+    dq.push_back({1,1});
+    print(dq[K-1]);
 }
 int32_t main() {
     ios::sync_with_stdio(false);
