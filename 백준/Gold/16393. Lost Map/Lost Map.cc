@@ -1882,18 +1882,16 @@ bool dfs(int cur) {
 void Solve() {
     cin >> N;
     int matrix[N+1][N+1] {};
-    p_q<tiii, vtiii, greater<>> pq;
+    vtiii v;
     rep(i,1,N) {
         rep(j,1,N) {
             cin >> matrix[i][j];
-            if(i<j) pq.push({matrix[i][j], i, j});
+            if(i<j) v.pbk({matrix[i][j], i, j});
         }
     }
+    sort(all(v));
     DSU dsu(N);
-    while(!pq.empty()) {
-        auto [d, u, v] = pq.top();
-        pq.pop();
-
+    for(auto [d,u,v] : v) {
         if(dsu.isSameParent(u,v)) continue;
         cout << u << " " << v << endl;
         dsu.merge(u,v);
