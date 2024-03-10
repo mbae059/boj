@@ -1885,53 +1885,31 @@ bool dfs(int cur) {
 }
 */
 
-vpii getV(const vpii& v) {
-    vpii ret;
-    
-    int n = v.size();
-    if(!v.empty()) ret.pbk(v.back());
-    for(int i=n-2;i>=0;i--) {
-        auto [a,b] = v[i];
-        if(b<ret.back().second) ret.pbk({a,b});
-    }
-    reverse(all(ret));
-    return ret;
-}
 void Solve() {
     cin >> N >> M;
-    vpii tv;
+    vpii v;
     for(int i=1;i<=N;i++) {
         int a, b; cin >> a >> b;
         if(a>b) {
-            tv.pbk({a,b});
+            v.pbk({b,a});
         }
     }
-    sort(all(tv));
 
-    auto v = getV(tv);
-    N = v.size();
-
-    deque<pii> dq;
-
-    int answer = M;
+    sort(all(v));
+    
+    pii p = {0,0};
+    int answer=M;
     for(auto [a,b] : v) {
-        if(dq.empty()) {
-            dq.pbk({a,b});
+        if(p.second>a) {
+            chmin(p.first, a);
+            chmax(p.second, b);
         }
         else {
-            if(dq.back().first>=b) {
-                dq.pbk({a,b});
-            }
-            else {
-                answer += (dq.back().first - dq.front().second) * 2;
-                dq.clear();
-                dq.pbk({a,b});
-            }
+            answer += 2 * (p.second-p.first);
+            p = {a,b};
         }
     }
-    if(!dq.empty()) {
-        answer += (dq.back().first-dq.front().second)*2;
-    }
+    answer += 2*(p.second-p.first);
     print(answer);
 }
 int32_t main() {
