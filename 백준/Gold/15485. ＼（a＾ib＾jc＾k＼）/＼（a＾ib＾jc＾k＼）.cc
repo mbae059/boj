@@ -1888,25 +1888,27 @@ void Solve() {
     string str; cin >> str;
     N = str.size();
     const int mod = 1e9+7;
-    mint::set_mod(mod);
     str = '0' + str;
 
-    mint dp[4] {};
-    mint two = 2;
+    int dp[4] {};
     for(int i=1;i<=N;i++) {
         char c = str[i];
 
         if(c=='a') {
-            dp[1]++;
+            if(dp[1]==0) dp[1]++;
+            else dp[1] = dp[1] * 2 + 1;
+            dp[1] %= mod;
         }
         else if(c=='b') {
-            dp[2] = dp[2]*2 + two.pow(dp[1].val())-1;
+            dp[2] = dp[2]*2 + dp[1];
+            dp[2] %= mod;
         }
         else if(c=='c') {
             dp[3] = dp[3]*2 + dp[2];
+            dp[3]%=mod;
         }
     }
-    cout << dp[3].val();
+    cout << dp[3];
 }
 int32_t main() {
     ios::sync_with_stdio(false);
