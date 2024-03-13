@@ -1918,9 +1918,6 @@ void Solve() {
             }
         }
     }
-    sort(all(cv));
-    cv.erase(unique(all(cv)), cv.end());
-
     for(auto [l1,r1,l2,r2] : cv) {
         int cnt = 0;
         for(auto [a,b] : v) {
