@@ -1883,6 +1883,7 @@ bool dfs(int cur) {
     return false;
 }
 */
+#define endl '\n'
 int cnt = 1;
 void Solve() {
     map<char, pii> mp;
@@ -1980,8 +1981,8 @@ void Solve() {
     }
 }
 int32_t main() {
-    // ios::sync_with_stdio(false);
-    // cin.tie(NULL);
-    // cout.tie(NULL);
+    ios::sync_with_stdio(false);
+    cin.tie(NULL);
+    cout.tie(NULL);
     Solve();
 }
