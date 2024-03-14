@@ -1296,9 +1296,9 @@ void Solve() {
     cin >> a;
     cout << "? " << N << endl;
     cin >> b;
-    if(a==b) cout << "! 0" << endl;
-    else if(a<b) cout << "! 1" << endl;
-    else cout << "! -1" << endl;
+    if(a==b) cout << "! 0";
+    else if(a<b) cout << "! 1";
+    else cout << "! -1";
 }
 int main() {
 	ios::sync_with_stdio(false);
