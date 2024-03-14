@@ -1888,30 +1888,18 @@ bool dfs(int cur) {
 void Solve() {
     cin >> N;
     int a[N+1] {};
+    int dest[N+1] {};
     rep(i,1,N) cin >> a[i];
+    memcpy(dest, a, sizeof(dest));
 
-    //comp
-    vi comp;
+    sort(dest+1,dest+1+N);
     mii mp;
     rep(i,1,N) {
-        comp.pbk(a[i]);
+        mp[dest[i]] = i;
     }
-    sort(all(comp));
-    comp.erase(unique(all(comp)), comp.end());
-    int cnt = 1;
-    for(auto i : comp) {
-        mp[i] = cnt++;
-    }
-    rep(i,1,N) {
-        a[i] = mp[a[i]];
-    }
-    //comp end
-    Segtree<int> segtree(N);
-
     int answer=1;
     rep(i,1,N) {
-        chmax(answer, segtree.query(1,a[i]+1,N,1,N)+1);
-        segtree.update(1,1,N,a[i],1);
+        chmax(answer, i-mp[a[i]]+1);
     }
     print(answer);
 }
