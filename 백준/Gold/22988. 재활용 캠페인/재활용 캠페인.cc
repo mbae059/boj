@@ -1886,27 +1886,32 @@ bool dfs(int cur) {
 */
 void Solve() {
     cin >> N >> X;
-    multiset<int> ms;
+    vi v;
+    X<<=1;
     int answer=0;
     rep(i,1,N) {
         int x; cin >> x;
+        x<<=1;
         if(x==X) answer++;
-        else ms.insert(x);
+        else v.pbk(x);
     }
-    N = ms.size();
-
-    while(!ms.empty()) {
-        auto iter1 = prev(ms.end(), 1);
-        auto iter2 = ms.lower_bound((X+1)/2-*iter1);
-        if(iter1==iter2 || iter2==ms.end()) break;
-        else {
-            ms.erase(iter1);
-            ms.erase(iter2);
+    sort(all(v));
+    N = v.size();
+    int l = 0;
+    int r = N-1;
+    int remain = 0;
+    while(l<r) {
+        if(v[l]+v[r]+X/2>=X) {
             answer++;
+            l++;
+            r--;
+        }
+        else {
+            l++;
+            remain++;
         }
     }
-    answer += ms.size() / 3;
-    print(answer);
+    cout << answer + (r-l+1+remain)/3;
 }
 int32_t main() {
     ios::sync_with_stdio(false);
