@@ -1,36 +1,28 @@
 #include <bits/stdc++.h>
 #define rep(i, a, b) for (int i=a; i<=b; i++) 
 
+using ll = long long;
+#define int ll
 using namespace std;
 int N;
+int dp[5][100001] {};
 void Solve() {
     cin >> N;
     string str; cin >> str;
     str = '0' + str;
-    vector<vector<int>> dp(5, vector<int>(N+1));
 
-    rep(i,1,N) {
-        char c = str[i];
-        rep(j,1,4) {
-            dp[j][i] = dp[j][i-1];
+    rep(j,1,N) {
+        char c = str[j];
+        rep(i,1,4) {
+            dp[i][j] = dp[i][j-1];
         }
-        if(c=='D') {
-            dp[1][i]++;
-        }
-        else if(c=='K') {
-            dp[2][i] += dp[1][i];
-        }
-        else if(c=='S') {
-            dp[3][i] += dp[2][i];
-        }
-        else if(c=='H') {
-            dp[4][i] += dp[3][i];
-        }
+        if(c=='D') dp[1][j]++;
+        else if(c=='K') dp[2][j] += dp[1][j];
+        else if(c=='S') dp[3][j] += dp[2][j];
+        else if(c=='H') dp[4][j] += dp[3][j];
     }
     cout << dp[4][N];
 }
 int32_t main() {
-    ios::sync_with_stdio(false);
-    cin.tie(NULL);
     Solve();
 }
