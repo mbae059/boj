@@ -3,11 +3,11 @@
 
 using namespace std;
 int N;
+int dp[5][100001] {};
 void Solve() {
     cin >> N;
     string str; cin >> str;
     str = '0' + str;
-    vector<vector<int>> dp(5, vector<int>(N+1));
 
     rep(i,1,N) {
         char c = str[i];
@@ -30,7 +30,5 @@ void Solve() {
     cout << dp[4][N];
 }
 int32_t main() {
-    ios::sync_with_stdio(false);
-    cin.tie(NULL);
     Solve();
 }
