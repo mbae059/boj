@@ -1892,43 +1892,23 @@ void Solve() {
         edge[a].pbk({b,c});
         edge[b].pbk({a,c});
     }
-    p_q<pii, vpii, greater<>> pq;
-    pq.push({0,1});
+    p_q<tiii, vtiii, greater<>> pq;
+    pq.push({0,-1,1});
     dp[1] = 0;
+    vpii answer;
     while(!pq.empty()) {
-        auto [d, cur] = pq.top();
+        auto [d, pre, cur] = pq.top();
         pq.pop();
         if(dp[cur]!=d) continue;
+        if(pre!=-1) answer.pbk({pre, cur});
         for(auto [next, dd] : edge[cur]) {
             if(dp[next]>d+dd) {
                 dp[next] = d+dd;
-                pq.push({dp[next], next}); 
+                pq.push({dp[next], cur, next}); 
             }
         }
     }
-
-    DSU dsu(N+1);
-
-    auto cmp = [](tiii& l, tiii& r) {
-        return get<2>(l) > get<2>(r);
-    };
-    p_q<tiii, vtiii, decltype(cmp)> pqEdge;
-    for(auto [next, d] : edge[1]) {
-        pqEdge.push({1, next, d});
-    }
-
-    vpii answer;
-    while(!pqEdge.empty()) {
-        auto [cur, next, cost] = pqEdge.top();
-        pqEdge.pop();
-        if(dsu.isSameParent(cur,next)) continue;
-        if(dp[next]!=dp[cur]+cost) continue;
-        dsu.merge(cur, next);
-        answer.pbk({cur,next});
-        for(auto [nnext, d] : edge[next]) {
-            pqEdge.push({next, nnext, d});
-        }
-    }
+    
     print(answer.size());
     print(answer);
 }
