@@ -1892,25 +1892,25 @@ void Solve() {
         edge[a].pbk({b,c});
         edge[b].pbk({a,c});
     }
-    p_q<tiii, vtiii, greater<>> pq;
-    pq.push({0,-1,1});
+    p_q<pii, vpii, greater<>> pq;
+    pq.push({0,1});
     dp[1] = 0;
+    vi from(N+1);
     vpii answer;
     while(!pq.empty()) {
-        auto [d, pre, cur] = pq.top();
+        auto [d, cur] = pq.top();
         pq.pop();
         if(dp[cur]!=d) continue;
-        if(pre!=-1) answer.pbk({pre, cur});
         for(auto [next, dd] : edge[cur]) {
             if(dp[next]>d+dd) {
                 dp[next] = d+dd;
-                pq.push({dp[next], cur, next}); 
+                from[next] = cur;
+                pq.push({dp[next], next}); 
             }
         }
     }
-    
-    print(answer.size());
-    print(answer);
+    print(N-1);
+    rep(i,2,N) cout << i << " " << from[i] << endl;
 }
 int32_t main() {
     ios::sync_with_stdio(false);
