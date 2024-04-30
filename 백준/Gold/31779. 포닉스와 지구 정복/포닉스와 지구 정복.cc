@@ -1936,32 +1936,32 @@ void Solve() {
             }
         }
     }
-    rep(i,1,N) {
-        rep(j,1,M) {
-            if(inDegree[i][j]==0 && matrix[i][j]!=0) {
-                print("No");
-                return;
-            }
-            if(inDegree[i][j]==1) {
-                q.push({i,j});
-                inDegree[i][j] = 0;
-            }
-        }
-    }
-    while(!q.empty()) {
-        auto [y,x] = q.front();
-        q.pop();
+    // rep(i,1,N) {
+    //     rep(j,1,M) {
+    //         if(inDegree[i][j]==0 && matrix[i][j]!=0) {
+    //             print("No");
+    //             return;
+    //         }
+    //         if(inDegree[i][j]==1) {
+    //             q.push({i,j});
+    //             inDegree[i][j] = 0;
+    //         }
+    //     }
+    // }
+    // while(!q.empty()) {
+    //     auto [y,x] = q.front();
+    //     q.pop();
 
-        for(int i=0;i<4;i++) {
-            int ny = y+dy[i];
-            int nx = x+dx[i];
-            if(!inRange(ny,nx)) continue;
-            if(volcano[ny][nx]) continue;
-            volcano[y][x] = 1;
-            matrix[ny][nx] -= matrix[y][x];
-            matrix[y][x] = 0;
-        }
-    }
+    //     for(int i=0;i<4;i++) {
+    //         int ny = y+dy[i];
+    //         int nx = x+dx[i];
+    //         if(!inRange(ny,nx)) continue;
+    //         if(volcano[ny][nx]) continue;
+    //         volcano[y][x] = 1;
+    //         matrix[ny][nx] -= matrix[y][x];
+    //         matrix[y][x] = 0;
+    //     }
+    // }
 
     rep(i,1,N) {
         rep(j,1,M) {
