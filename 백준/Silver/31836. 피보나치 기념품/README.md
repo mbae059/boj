@@ -16,7 +16,7 @@
 
 ### 문제 설명
 
-<p><img alt="" src="https://upload.acmicpc.net/150d504a-ef29-41d6-8b57-8ffb3e8473c3/-/preview/" style="height: 375px; width: 500px; display: block; margin: auto;"></p>
+<p><img alt="" src="" style="height: 375px; width: 500px; display: block; margin: auto;"></p>
 
 <p>피보나치 수열은 다음과 같이 정의되는 수열이다.</p>
 
