@@ -1893,11 +1893,10 @@ bool dfs(int cur) {
 }
 */
 
-bool win(char c1, char c2) {
-    if(c1=='R' && c2=='P') return true;
-    if(c1=='P' && c2=='S') return true;
-    if(c1=='S' && c2=='R') return true;
-    return false;
+char lose(char c) {
+    if(c=='R') return 'S';
+    if(c=='S') return 'P';
+    return 'R';
 }
 void Solve() {
     cin >> N >> M >> K;
@@ -1906,34 +1905,22 @@ void Solve() {
         string str; cin >> str;
         v.pbk(str);
     }
-    vi tv(N);
-    iota(all(tv),0);
-    queue<tuple<int, string, vi>> q;
-    q.push({0,"R",tv});
-    q.push({0,"P",tv});
-    q.push({0,"S",tv});
-    while(!q.empty()) {
-        auto [k, str, tv] = q.front();
-        q.pop();
-
-        if(tv.size()<=K && !tv.empty()) {
-            print(k);
-            str.pop_back();
-            print(str);
-            return;
+    rep(i,1,M) {
+        map<string, int> mp;
+        for(auto str : v) {
+            mp[str.substr(0,i)] += 1;
         }
-        if(tv.empty() || k==M) continue;
-        auto c = str.back();
-
-        vi ttv;
-        for(auto i : tv) {
-            if(win(c, v[i][k])) ttv.pbk(i);
+        for(auto [str, k] : mp) {
+            if(k<=K) {
+                cout << i << endl;
+                for(auto c : str) {
+                    cout << lose(c);
+                }
+                return;
+            }
         }
-        q.push({k+1,str+'R',ttv});
-        q.push({k+1,str+'P',ttv});
-        q.push({k+1,str+'S',ttv});
     }
-    print(-1);
+    cout << -1;
 }
 int32_t main() {
     ios::sync_with_stdio(false);
