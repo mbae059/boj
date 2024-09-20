@@ -1855,7 +1855,8 @@ struct Point {
     }
 
     bool operator < (Point& p) {
-        return 234*x + 1324*y < 234*p.x + 1324*p.y;
+        if(y==p.y) return x<p.x;
+        return y<p.y;
     }
 
     bool operator == (Point& p) {
