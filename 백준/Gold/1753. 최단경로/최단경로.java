@@ -1,6 +1,4 @@
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStreamReader;
+import java.io.*;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -30,18 +28,19 @@ public class Main {
     }
 
     public static void main(String[] args) throws IOException {
-        BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
-        String[] input = br.readLine().split(" ");
+        BufferedReader brRead = new BufferedReader(new InputStreamReader(System.in));
+        BufferedWriter brWrite = new BufferedWriter(new OutputStreamWriter(System.out));
+        String[] input = brRead.readLine().split(" ");
         int N = Integer.parseInt(input[0]);
         int M = Integer.parseInt(input[1]);
-        int K = Integer.parseInt(br.readLine());
+        int K = Integer.parseInt(brRead.readLine());
 
         List<List<Pii>> edge = new ArrayList<>();
         for (int i = 0; i <= N; i++) {
             edge.add(new ArrayList<>());
         }
         for (int i = 0; i < M; i++) {
-            String[] edges = br.readLine().split(" ");
+            String[] edges = brRead.readLine().split(" ");
             int u = Integer.parseInt(edges[0]);
             int v = Integer.parseInt(edges[1]);
             int w = Integer.parseInt(edges[2]);
@@ -71,7 +70,15 @@ public class Main {
             }
         }
         for (int i = 1; i <= N; i++) {
-            System.out.println(dp.get(i)==maxValue ? "INF" : dp.get(i));
+            String str = null;
+            if(dp.get(i) != maxValue) {
+                str = String.valueOf(dp.get(i));
+            }
+            else {
+                str = "INF";
+            }
+            brWrite.write(str+"\n");
         }
+        brWrite.flush();
     }
 }
