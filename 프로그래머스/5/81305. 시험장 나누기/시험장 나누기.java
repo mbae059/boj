@@ -78,10 +78,4 @@ class Solution {
         else if(num[cur]<=limit) return new Pii(num[cur], l.b+r.b+2);
         else return new Pii(1, (int)1e4+1);
     }
-    void print(int... args) {
-        for(int i : args) {
-            System.out.print(i + " ");
-        }
-        System.out.println();
-    }
 }
