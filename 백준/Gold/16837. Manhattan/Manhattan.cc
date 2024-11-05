@@ -1921,16 +1921,14 @@ void Solve() {
 
     string str = to_string(n);
 
-    double answer1 = 0;
     double answer2 = 0;
     double answer3 = 0;
     double answer4 = 0;
-    if(str.substr(str.find('.'), 4)==".000") answer1 = stoi(str.substr(0,str.find('.')))+1;
     if(1<=n && n<=sqrt(2)) answer3 = 2;
     else if(2<=n && n<=sqrt(5)) answer4 = 3;
     answer2 = n * sqrt(2);
 
-    double answer = max({answer1,answer2,answer3,answer4});
+    double answer = max({answer2,answer3,answer4});
     cout << fixed << setprecision(12) << answer;
 }
 int32_t main() {
