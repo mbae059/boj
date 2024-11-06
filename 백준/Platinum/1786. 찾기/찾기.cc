@@ -18,10 +18,12 @@ using vll = vector<ll>;
 using mii = map<int, int>;
 using si = set<int>;
 using qi = queue<int>;
+using qpii = queue<pii>;
 using tiii = tuple<int, int, int> ; //get<0>(t);
 using vtiii = vector<tiii>;
 using pll = pair<ll, ll>;
 using vpll = vector<pll>;
+
 int T, N, K, M, S, H, W, Q; // S is for MCMF, network flow
 int dir[4][2] = {{1,0},{-1,0}, {0,1}, {0,-1}};
 //ofstream out("temp.txt");
@@ -29,6 +31,7 @@ int dir[4][2] = {{1,0},{-1,0}, {0,1}, {0,-1}};
 //ex) cout << setw(3) << "a" << endl;
 //to make a sorted vector's element unique, you should do v.erase(unique(v.begin(), v.end()), v.end())
 
+//diagonal counting. l[y+x], r[y-x+N]
 void print(pii a) {
     cout << a.first << " " << a.second << endl;
 }
@@ -44,6 +47,12 @@ void print(vector<T>& v) {
         cout << i << " ";
     }
     cout << endl;
+}
+bool inRange(int y, int x) {
+    return 1<=y && y<=N && 1<=x && x<=M;
+}
+bool inRangeN(int y, int x) {
+    return 1<=y && y<=N && 1<=x && x<=N;
 }
 /*
 vector<int> combination;
@@ -73,46 +82,6 @@ A-Z is 26 char
 <regex> header file is used for find patterns
 */
 
-/* FOR COUNTING INVERSION, MERGE SORT VERSION
-void merge(vector<int>& arr, int l, int mid, int r, int& ic) {
-    vector<int> left, right;
-    for (int i = l; i <= mid; i++) left.pbk(arr[i]);
-    for (int i = mid + 1; i <= r; i++) right.pbk(arr[i]);
-    int i = 0; int j = 0;
-    int n1 = left.size();
-    int n2 = right.size();
-    int k = l;
-    while (i < n1 && j < n2) {
-        if (left[i] <= right[j]) {
-            arr[k++] = (left[i++]);
-        }
-        else {
-            arr[k++] = (right[j++]);
-            ic += (n1 - i);
-        }
-    }
-    while (i < n1) {
-        arr[k++] = (left[i++]);
-    }
-    while (j < n2) {
-        arr[k++] = (right[j++]);
-    }
-}
-void mergesort(vector<int>& arr, int l, int r, int& ic) {
-    if (l >= r) return;
-    int mid = (l + r) / 2;
-    mergesort(arr, l, mid, ic);
-    mergesort(arr, mid + 1, r, ic);
-    merge(arr, l, mid, r, ic);
-}
-int find_inversion_count(vector<int>& arr) {
-    int n = arr.size();
-    int ic = 0;
-    mergesort(arr, 0, n - 1, ic);
-    return ic;
-}
-*/
-
 //////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////
 
@@ -120,31 +89,39 @@ int find_inversion_count(vector<int>& arr) {
 // THIS IS SEGMENT TREE AND LAZY PROPOGATION
 /*
 
-#define MAX 10000
-int v[MAX], s[4*MAX]; //v starts from 0, s starts from 1.
+#define MAX 100001
+ll v[MAX], s[4*MAX]; //v starts from 0, s starts from 1.
 //nodeLeft and nodeRight always has to be 0 and N-1 as it is used in binary searching
-int segment(int node, int nodeLeft, int nodeRight) { // use when s, v is available and segment tree is about sum
+ll segment(int node, int nodeLeft, int nodeRight) { // use when s, v is available and segment tree is about sum
     if (nodeLeft == nodeRight) {
         return s[node] = v[nodeLeft];
     }
-    int mid = nodeLeft + (nodeRight - nodeLeft) / 2;
+	int mid = (nodeLeft+nodeRight)/2;
     return s[node] = segment(node * 2, nodeLeft, mid) + segment(node * 2 + 1, mid + 1, nodeRight);
 }
-void update(int node, int idx, int nodeLeft, int nodeRight, int dif) { //Before this you have to do v[idx]+=dif;
+void update(int node, int idx, int nodeLeft, int nodeRight, ll num) { v[idx]=num;
     if (idx < nodeLeft || nodeRight < idx) return;
-    s[node] += dif;
-    if (nodeLeft == nodeRight) return;
-    int mid = nodeLeft + (nodeRight - nodeLeft) / 2;
-    update(node * 2, idx, nodeLeft, mid, dif);
-    update(node * 2 + 1, idx, mid + 1, nodeRight, dif);
+    if (nodeLeft == nodeRight) {
+        s[node] = num;
+        return;
+    }
+    int mid = (nodeLeft+nodeRight)/2;
+    update(node * 2, idx, nodeLeft, mid, num);
+    update(node * 2 + 1, idx, mid + 1, nodeRight, num);
+
+    s[node] = s[node * 2] + s[node * 2 + 1];
 }
-int query(int node, int l, int r, int nodeLeft, int nodeRight) { //l and r is the range.
+ll query(int node, int l, int r, int nodeLeft, int nodeRight) { //l and r is the range.
     if (nodeRight < l || r < nodeLeft) return 0;
     if (l <= nodeLeft && nodeRight <= r) return s[node];
-    int mid = nodeLeft + (nodeRight - nodeLeft) / 2;
+	int mid = (nodeLeft+nodeRight)/2;
     return query(node * 2, l, r, nodeLeft, mid) + query(node * 2 + 1, l, r, mid + 1, nodeRight);
 }
+*/
 
+//////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////
+/*
 //This is lazy propogation. Beginning starts with segment(..) used in above
 
 void propogation(int node, int l, int r) {
@@ -474,34 +451,8 @@ void Dijkstra(int num) {
 }
 */
 
-//This is Bellman_Ford
-
-/*
-#define MAX 20001
-vpii edge[MAX];
-int d[MAX];
-void bellman_ford(int start) {
-    fill(d + 1, d + 1 + N, INF); //Beware of INF
-    bool cycle = 0;
-    d[start]=0;
-    rep(i, 1, N) {
-        rep(j, 1, N) {
-            for (auto next : edge[j]) {
-                if (d[j]!=INF && d[next.first] > d[j] + next.second) { //d[j]!=INF -> in case d[j]+next.second is overflow
-                    d[next.first] = d[j] + next.second;
-                    if (i == N) cycle = 1;
-                }
-            }
-        }
-    }
-    if (cycle) {
-        cout << "CYCLE: " << endl;
-    }
-}
-*/
-
-///////////////////////////
-///////////////////////////
+//////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////
 //This is SPFA 
 
 /*
@@ -540,7 +491,7 @@ void SPFA(int start) {
 
 // This is Floyd-Warshall
 /*
-#define MAX 10001
+#define MAX 501
 int dp[MAX][MAX]; //input should be done in dp table
 void floyd_warshall() {
     rep(i, 1, N) {
@@ -830,52 +781,19 @@ int LineInterSection(Line l1, Line l2) {
 //////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////
 
-/* This is bitmasking
-void show(int& num) { // shows num in binary
-    for(int i=32;i>0;i--) {
-       cout << (num & (1 << i-1));
-    }
-}
-
-void init(int& num) { //num becomes 000000....
-    num =0;
-}
-
-void full(int& num) { // num becomes 11111111....
-    num = -1;
-}
-
-void drop(int& num, int i) { // deletes i th information. Be careful in using i
-    num &= ~(1<<i);
-}
-
-void set(int& num, int i) { // sets i th information to true
-    num |= (1<<i);
-}
-
-bool isSet(int& num, int i) {
-    return num & (1<<i);
-}
-
-void toggle(int& num, int i) {
-    num ^= (1<<i);
-}
-
-*/
-
-//////////////////////////////////////////////////////////
-//////////////////////////////////////////////////////////
-
 // This is LCA with binary algorithm (O(logN))
-
 /*
 #define MAX 100001
-vi adj[MAX];
+vi edge[MAX];
 int parent[MAX][18]; //18 is log2(MAX)
 int level[MAX];
 int maxLevel;
 
 //maps node and depth and set 2^i parent
+//use before LCA function
+//set_tree(root, 0) should do it
+//if node 0 exists, then this function needs to be altered
+//get root node by inDegree array.
 void set_tree(int node, int pnode) {
     level[node] = level[pnode]+1;
     parent[node][0] = pnode;
@@ -883,9 +801,8 @@ void set_tree(int node, int pnode) {
     for(int i=1;i<=maxLevel;i++) {
         parent[node][i] = parent[parent[node][i-1]][i-1];
     }
- 
-    for(int i=0;i<adj[node].size();i++) {
-        int child = adj[node][i];
+
+    for(auto child : edge[node]) {
         if(child==pnode) continue;
         set_tree(child, node);
     }
@@ -896,8 +813,8 @@ void init() {
     for(int i=0;i<N-1;i++) {
         int a, b;
         cin >> a >> b;
-        adj[a].pbk(b);
-        adj[b].pbk(a);
+        edge[a].pbk(b);
+        edge[b].pbk(a);
     }
     maxLevel = (int)floor(log2(MAX));
 }
@@ -908,7 +825,8 @@ int LCA(int a, int b) {
     int target = a, compare = b;
     if(level[a] < level[b]) swap(target, compare); //target is deeper
 
-    if(level[target]!=level[compare]) {
+    //set level[] equal
+    if(level[target]!=level[compare]) { 
         for(int i=maxLevel;i>=0;i--) {
             if(level[parent[target][i]] >= level[compare]) {
                 target = parent[target][i];
@@ -917,7 +835,8 @@ int LCA(int a, int b) {
     }
 
     int ret = target;
-
+    
+    //set target==compare
     if(target!=compare) {
         for(int i=maxLevel;i>=0;i--) {
             if(parent[target][i]!=parent[compare][i]) {
@@ -948,6 +867,7 @@ void LIS(vi& v) { //vector v's size is N
         //if only strictly increasing sequence is allowed, for example 10 20 40... then it should be lower_bound
         //https://www.acmicpc.net/problem/12738    this problem only allows strictly increasing order meaning one should use lower_bound
         //https://www.acmicpc.net/problem/2352     this problem also allows strictly increasing order but the element in array is never overlapped so it can use both lower_bound and upper_bound
+        
         auto iter = lower_bound(all(lis), cur);
         //if found, replace the value with cur. if not, cur is the highest value of lis
         if(iter!=lis.end()) {
@@ -1021,59 +941,95 @@ void rotate() { //rotating N*N matrix by 90 degrees clockwise
 */
 
 // Trie
-
 /*
-#define TrieNode 26
+#define TRIENODE 26
 struct Trie {
-    Trie *next[TrieNode]; // 다음 노드를 가리키는 포인터 배열
+    Trie *next[TRIENODE]; // 다음 노드를 가리키는 포인터 배열
     //map<string, Trie*> next;
     bool finish;
- 
+    Trie *fail; //for Aho-corasick
     Trie() {
-        fill(next, next + TrieNode, nullptr);
+        fill(next, next + TRIENODE, nullptr);
         finish = false;
     }
  
     ~Trie() {
-        for (int i = 0; i < TrieNode; i++) {
+        for (int i = 0; i < TRIENODE; i++) {
             if (next[i]) delete next[i];
         }
     }
- 
+
+    int getIdx(char c) {
+        return c-'A';
+    }
     void insert(const string& str, int k=0) {
         if (k==str.size()) {
             finish = true;
             return;
         }
 
-        int curKey = str[k] - 'A'; //or 'a' or '0'
+        int curKey = getIdx(str[k]); //or 'a' or '0'
  
         if (next[curKey]==nullptr) next[curKey] = new Trie();
 
         next[curKey]->insert(str, k+1); // 다음 문자 삽입
     }
 
-    // void insert(vector<string>& v, int k=0) {
-    //     if(k==v.size()) {
-    //         finish = true;
-    //         return;
-    //     }
+    void init() { //Aho-corasick. use when this is root
+        queue<Trie*> q;
+        q.push(this);
+        
+        while(!q.empty()) {
+            Trie* cur = q.front();
+            q.pop();
 
-    //     string str = v[k];
-    //     if(next.find(str)==next.end()) next[str] = new Trie();
-    //     next[str]->insert(v, k+1);
-    // }
+            for(int i=0;i<TRIENODE;i++) {
+                Trie *nextTrie = cur->next[i];
+                if(nextTrie==nullptr) continue;
 
+                if(cur==this) {
+                    nextTrie->fail = this;
+                }
+                else {
+                    Trie *dest = cur->fail;
+
+                    while(dest!=this && dest->next[i]==nullptr) {
+                        dest = dest->fail;
+                    }
+                    if(dest->next[i]) dest = dest->next[i];
+
+                    nextTrie->fail = dest;
+                }
+                if(nextTrie->fail->finish) nextTrie->finish = true;
+                q.push(nextTrie);
+            }
+        }
+    }
+
+    void query(const string& str) { //for Aho-corasick
+        Trie *cur = this;
+        int cnt = 0;
+        for(auto c : str) {
+            int curKey = getIdx(c);
+            
+            while(cur!=this && cur->next[curKey]==nullptr) {
+                cur = cur->fail;
+            }
+
+            if(cur->next[curKey]) cur = cur->next[curKey];
+
+            if(cur->finish) cnt++;
+        }
+    }
     bool find(const string& str, int k=0) {
         if (k==str.size()) return true; // 문자열이 끝나는 위치를 반환
-        int curKey = str[k] - 'A'; //or 'a' or '0'
+        int curKey = getIdx(str[k]); //or 'a' or '0'
         if (next[curKey] == nullptr) return false; // 찾는 값이 존재하지 않음
         return next[curKey]->find(str, k+1); // 다음 문자를 탐색
     }
 };
 
 */
-
 //KMP
 vi makeTable(const string& pattern) {
     int patternSize = pattern.size();
@@ -1102,14 +1058,14 @@ void KMP(const string& parent, const string& pattern) {
 
     int j =0;
 
-    vi v; 
+    vi v;
     for(int i=0;i<parentSize;i++) {
         while(j>0 && parent[i] != pattern[j]) {
             j = table[j-1];
         }
         if(parent[i] == pattern[j]) {
             if(j == patternSize-1) {
-                v.pbk(i-patternSize+2);
+                v.pbk(i-patternSize + 2);
                 j = table[j];
             }
             else {
@@ -1117,37 +1073,14 @@ void KMP(const string& parent, const string& pattern) {
             }
         }
     }
-    cout << v.size() << endl;
+    cout << v.size() <<endl;
     print(v);
 }
-
-
-/*
-*
-*
-*
-*
-*
-*
-*
-*
-*
-*
-*
-*
-*
-*/
-#define MAX 1111
-int matrix[MAX][MAX] {};
-
-
 void Solve() {
-    string parent, pattern;
-    getline(cin, parent);
-    getline(cin, pattern);
-    
-    KMP(parent, pattern);
-
+    string tstr, pstr;
+    getline(cin, tstr);
+    getline(cin, pstr);
+    KMP(tstr, pstr);
 }
 int main() {
     ios::sync_with_stdio(false);
