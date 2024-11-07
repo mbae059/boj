@@ -1930,9 +1930,7 @@ void Solve() {
                 idx = dsu.getParent(idx);
                 break;
             }
-            // cout << idx << " " << pi[idx-1] << endl;
         }
-        // cout << i << " " << idx << " " << pi[idx] << endl << endl;
         answer += i+1-pi[idx];
     }
     print(answer);
