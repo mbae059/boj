@@ -1923,9 +1923,9 @@ void Solve() {
         if(pi[i]==0) continue;
 
         int idx = i;
-        while(pi[pi[idx]-1]!=0 && str[i]==str[pi[idx-1]]) {
-            dsu.merge(idx, pi[idx-1]);
-            idx = pi[idx-1];
+        while(pi[pi[idx]-1]!=0 && str[i]==str[pi[idx]-1]) {
+            dsu.merge(idx, pi[idx]-1);
+            idx = pi[idx]-1;
             if(dsu.getParent(idx)!=idx) {
                 idx = dsu.getParent(idx);
                 break;
