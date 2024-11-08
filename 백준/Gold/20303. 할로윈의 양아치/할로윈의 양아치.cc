@@ -1939,17 +1939,18 @@ void Solve() {
 
         v.pbk({dsu.sz[i], a[i]});
     }
-    vvi dp(v.size()+1, vi(K));
+    vvi dp(2, vi(K));
     int answer=0;
     for(int i=1;i<=v.size();i++) {
         auto [sz, sweets] = v[i-1];
         for(int j=0;j<K;j++) {
-            chmax(dp[i][j], dp[i-1][j]);
-            if(j-sz>=0) chmax(dp[i][j], dp[i-1][j-sz] + sweets);
-            chmax(answer, dp[i][j]);
+            chmax(dp[1][j], dp[0][j]);
+            if(j-sz>=0) chmax(dp[1][j], dp[0][j-sz] + sweets);
+            chmax(answer, dp[1][j]);
         }
         if(sz>=K) continue;
-        chmax(dp[i][sz], sweets);
+        chmax(dp[1][sz], sweets);
+        for(int j=0;j<K;j++) dp[0][j] = dp[1][j];
     }
     print(answer);
 }
