@@ -1921,27 +1921,24 @@ constexpr int mod = 10007;
 void Solve() {
     string str; cin >> str;
     N = str.size();
-    vector<vector<bool>> visited(N, vector<bool>(N));
-    vector<vector<mint>> dp(N, vector<mint>(N, -1));
+    vector<vector<int>> dp(N, vector<int>(N, -1));
 
     mint::set_mod(mod);
-
-    auto dfs = [&](auto&& dfs, int l, int r) -> mint {
+    auto dfs = [&](auto&& dfs, int l, int r) -> int {
         if(l>r) return 0;
         if(l==r) return 1;
-        else if(l+1==r) return 2+(str[l]==str[r]);
 
-        if(visited[l][r]) return dp[l][r];
-        visited[l][r] = 1;
-        mint& ret = dp[l][r];
+        int& ret = dp[l][r];
+        if(ret!=-1) return ret;
+        ret = (dfs(dfs, l+1, r) + dfs(dfs, l, r-1)) % mod - dfs(dfs, l+1, r-1);
+        if(ret<0) ret += mod;
+        if(str[l]==str[r]) ret = (ret + dfs(dfs, l+1, r-1) + 1)%mod;
 
-        ret = dfs(dfs, l+1, r) + dfs(dfs, l, r-1) - dfs(dfs, l+1, r-1);
-        if(str[l]==str[r]) ret += dfs(dfs, l+1, r-1) + 1;
-        
+        ret %= mod;
         return ret;
     };
 
-    print(dfs(dfs, 0,N-1).val());
+    print(dfs(dfs, 0,N-1));
 }
 int32_t main() {
     ios::sync_with_stdio(false);
