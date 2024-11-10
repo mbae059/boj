@@ -1916,7 +1916,7 @@ bool dfs(int cur) {
 }
 */
 
-vi dp(10'000'001, 1e18);
+vi dp(6'000'001, 1e18);
 
 void Solve() {
     cin >> A >> B;
@@ -1938,14 +1938,14 @@ void Solve() {
                 dp[ccur-idx] = dp[ccur]+1;
                 q.push(ccur-idx);
             }
-            if(val<9 && ccur+idx<=10'000'000 && dp[ccur+idx]==1e18) {
+            if(val<9 && ccur+idx<=6'000'000 && dp[ccur+idx]==1e18) {
                 dp[ccur+idx] = dp[ccur]+1;
                 q.push(ccur+idx);
             }
             idx*=10;
         }
 
-        if(ccur+1<=10'000'000 && dp[ccur+1]==1e18) {
+        if(ccur+1<=6'000'000 && dp[ccur+1]==1e18) {
             dp[ccur+1] = dp[ccur]+1;
             q.push(ccur+1);
         }
