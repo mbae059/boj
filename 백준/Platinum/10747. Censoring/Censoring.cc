@@ -1920,45 +1920,23 @@ void Solve() {
 
     auto pi = getPi(pattern);
 
-    
-    base = '1' + base;
-    DSU dsu(base.size());
-
-    vector<int> kmp(base.size(), -1);
-
-    auto merge = [&](int cur) {
-        int sz = pattern.size();
-
-        while(sz--) {
-            int pre = dsu.getParent(cur-1);
-            dsu.merge(cur, pre);
-            cur = pre;
-        }
-    };
+    vector<int> kmp(base.size());
 
     int j = 0;
+    string answer;
     for(int i=0;i<base.size();i++) {
+        answer += base[i];
         while(j>0 && base[i]!=pattern[j]) j = pi[j-1];
         if(base[i]==pattern[j]) {
             j++;
             if(j==pattern.size()) {
-                kmp[i] = j;
-                merge(i);
-                j = kmp[dsu.getParent(i-pattern.size())];
+                for(int k=0;k<pattern.size();k++) answer.pop_back();
+                j = kmp[answer.size()];
             }
         }
-        if(kmp[i]==-1) kmp[i] = j;
+        kmp[answer.size()] = j;
     }
 
-    string answer;
-
-    for(int i=1;i<base.size();i++) {
-        answer += base[i];
-
-        if(kmp[i]==pattern.size()) {
-            for(int k=0;k<pattern.size();k++) answer.pop_back();
-        }
-    }
     print(answer);
 }
 int32_t main() {
