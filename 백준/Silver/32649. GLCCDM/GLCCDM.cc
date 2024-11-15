@@ -1919,10 +1919,6 @@ bool dfs(int cur) {
 void Solve() {
     cin >> A >> B >> K;
     
-    if(B%A) {
-        print(-1);
-        return;
-    }
     vi v;
     
     int l = 1;
