@@ -1916,27 +1916,26 @@ bool dfs(int cur) {
 }
 */
 
-#define MAX 50'000'000
-vector<bool> sieve(MAX+1, 1);
+bool isPrime(int num) {
+    if(num==1) return false;
+    for(int i=2;i*i<=num;i++) {
+        if(num%i==0) return false;
+    }
+    return true;
+}
+
 void Solve() {
     cin >> A >> B >> K;
-    sieve[0] = sieve[1] = 0;
-
-    for(int i=2;i<=MAX;i++) {
-        if(sieve[i]==0) continue;
-
-        for(int j=i+i;j<=MAX;j+=i) {
-            sieve[j] = 0;
-        }
-    }
 
     vi v;
     for(int i=A;i<=B;i++) {
-        if(sieve[i]) v.pbk(i);
+        if(isPrime(i)) v.pbk(i);
     }
-    
+
     map<int,int> mp;
+    
     mp[0] = 1;
+
     for(auto i : v) {
         vpii tv;
         for(auto [val, cnt] : mp) {
