@@ -1920,12 +1920,8 @@ void Solve() {
     cin >> A >> B >> C >> D >> E >> F >> G >> H;
 
     int answer=0;
-    for(int bits=0;bits<1<<13;bits++) {
-        if(__popcount(bits)!=6) continue;
-        vi v;
-        for(int bit=0;bit<13;bit++) {
-            if(bits&(1<<bit)) v.pbk(bit+1);
-        }
+
+    auto go = [&](vi& v) -> void {
         do {
             int a = v[0];
             int b = v[1];
@@ -1952,7 +1948,24 @@ void Solve() {
             if(a+b+c+d!=E || e+f+g+h!=F || i+j+k!=G || l+m!=H || a+e+i+l!=A || b+f+j+m!=B || c+g+k!=C || d+h!=D) flag =0;
             if(flag) answer++;
         } while(next_permutation(all(v)));
+    };
+
+    for(int a=1;a<=13;a++) {
+        for(int b=a+1;b<=13;b++) {
+            for(int c=b+1;c<=13;c++) {
+                for(int d=c+1;d<=13;d++) {
+                    for(int e=d+1;e<=13;e++) {
+                        for(int f=e+1;f<=13;f++) {
+                            vi v {a,b,c,d,e,f};
+                            
+                            go(v);
+                        }
+                    }
+                }
+            }
+        }
     }
+
     print(answer);
 }
 int32_t main() {
