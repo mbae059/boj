@@ -1918,14 +1918,14 @@ bool dfs(int cur) {
 
 void Solve() {
     cin >> N;
-    si s;
-    rep(i,1,N) {
+    set<int> s;
+    for(int i=1;i<=N;i++) {
         int x; cin >> x;
         s.insert(x);
     }
     int answer=0;
     auto dfs = [&](auto&& dfs, int cur, int depth) -> void {
-        if(depth>61) {
+        if(depth>62) {
             cout << -1;
             exit(0);
         }
